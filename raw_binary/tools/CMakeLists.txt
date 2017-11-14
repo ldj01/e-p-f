@@ -88,12 +88,4 @@ set (ALL_TARGETS convert_lpgs_to_espa convert_espa_to_hdf convert_espa_to_gtif
                  convert_espa_to_netcdf create_landsat_angle_bands
                  create_l8_angle_bands)
 
-install(TARGETS ${ALL_TARGETS}
-        DESTINATION espa-product-formatter/raw_binary/bin)
-
-
-foreach (file ${ALL_TARGETS})
-    install(CODE "execute_process(COMMAND
-                        ln -sf ../espa-product-formatter/raw_binary/bin/${file}
-                               ${CMAKE_INSTALL_PREFIX}/bin)")
-endforeach ()
+install(TARGETS ${ALL_TARGETS} DESTINATION bin)
