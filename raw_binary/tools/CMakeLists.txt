@@ -89,3 +89,11 @@ set (ALL_TARGETS convert_lpgs_to_espa convert_espa_to_hdf convert_espa_to_gtif
                  create_l8_angle_bands)
 
 install(TARGETS ${ALL_TARGETS} DESTINATION bin)
+
+
+# Tests
+add_executable(test_read_gtif test_read_gtif.c)
+target_link_libraries(test_read_gtif espa_format_conversion espa_raw_binary
+                      espa_common
+                      ${XML_LIBS} ${TIFF_LIBS} ${GEOTIFF_LIBS})
+     

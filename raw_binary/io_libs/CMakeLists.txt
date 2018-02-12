@@ -1,4 +1,6 @@
 include_directories(${XML_INCLUDES})
+include_directories(${TIFF_INCLUDES})
+include_directories(${GEOTIFF_INCLUDES})
 
 file(GLOB SOURCES "*.c")
 file(GLOB HEADERS "*.h")
