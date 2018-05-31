@@ -1,8 +1,9 @@
 include_directories(${XML_INCLUDES})
-include_directories(${TIFFINC})
-include_directories(${GEOTIFF_INC})
-include_directories(${HDFINC})
-include_directories(${HDFEOS_INC})
+include_directories(${NETCDF_INCLUDES})
+include_directories(${TIFF_INCLUDES})
+include_directories(${GEOTIFF_INCLUDES})
+include_directories(${HDF4_INCLUDES})
+include_directories(${HDFEOS_INCLUDES})
 include_directories(${JBIGINC})
 include_directories(${ZLIBINC})
 
