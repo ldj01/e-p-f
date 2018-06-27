@@ -1,0 +1,168 @@
+cmake_minimum_required(VERSION 3.6)
+
+project(espa-product-formatter)
+
+# Set the package version.
+include(package_version.cmake)
+
+include(FindPkgConfig)
+
+if (NOT XML_INCLUDES)
+    find_package(LibXml2)
+    if (LIBXML2_FOUND)
+        set (XML_INCLUDES ${LIBXML2_INCLUDE_DIR})
+        set (XML_LIBS ${LIBXML2_LIBRARIES})
+    endif ()
+endif ()
+set (XML_INCLUDES ${XML_INCLUDES} CACHE PATH "XML2 header file path" FORCE)
+set (XML_LIBS ${XML_LIBS} CACHE STRING "XML2 libraries" FORCE)
+
+# Check whether any HDFEOS flags or environment variables are set. If so,
+# then use the HDFEOS library (including its GCTP library).  Otherwise,
+# use the GCTP2 library.
+if (NOT HDFEOS_INCLUDES)
+    if (DEFINED ENV{HDFEOS_INC})
+        set (HDFEOS_INCLUDES $ENV{HDFEOS_INC})
+        set (HDFEOS_LIBS -L$ENV{HDFEOS_LIB} -lhdfeos)
+        set (USE_HDFEOS TRUE)
+    elseif (USE_HDFEOS)
+        pkg_check_modules(HDFEOS hdf-eos4)
+        if (HDFEOS_FOUND)
+            set (HDFEOS_INCLUDES ${HDFEOS_INCLUDE_DIRS})
+            set (HDFEOS_LIBS ${HDFEOS_LDFLAGS})
+        endif ()
+    endif ()
+elseif (NOT HDFEOS_LIBS)
+    # If HDFEOS_INCLUDES is set, it's assumed that HDFEOS_LIBS is also set.
+    message(FATAL_ERROR "HDFEOS_LIBS must be set if HDFEOS_INCLUDES is set.")
+else ()
+    set (USE_HDFEOS TRUE)
+endif ()
+if (USE_HDFEOS)
+    message(STATUS "Using HDFEOS library.")
+    add_definitions(-DUSE_HDFEOS)
+    set (HDFEOS_INCLUDES ${HDFEOS_INCLUDES} CACHE
+         PATH "HDFEOS header file path" FORCE)
+    set (HDFEOS_LIBS ${HDFEOS_LIBS} CACHE STRING "HDFEOS libraries" FORCE)
+    if (HDFEOS_GCTPINC)
+        set (GCTP2_INCLUDES ${HDFEOS_GCTPINC})
+    elseif (DEFINED ENV{HDFEOS_GCTPINC})
+        set (GCTP2_INCLUDES $ENV{HDFEOS_GCTPINC})
+    endif ()
+    if (HDFEOS_GCTPLIB)
+        set (GCTP2_LIBS -L${HDFEOS_GCTPLIB} -lGctp -lm)
+    elseif (DEFINED ENV{HDFEOS_GCTPLIB})
+        set (GCTP2_LIBS -L$ENV{HDFEOS_GCTPLIB} -lGctp -lm)
+    endif ()
+else ()
+    message(STATUS "Using GCTP2 package.")
+    if (NOT GCTP2_INCLUDES)
+        set (GCTP2_INCLUDES $ENV{GCTP2INC})
+    endif ()
+    if (NOT GCTP2_LIBS)
+        set (GCTP2_LIBS "-L$ENV{GCTP2LIB} -lgctp -lm")
+    endif ()
+endif ()
+set (GCTP2_INCLUDES ${GCTP2_INCLUDES} CACHE PATH "GCTP2 header file path"
+     FORCE)
+set (GCTP2_LIBS ${GCTP2_LIBS} CACHE STRING "GCTP2 libraries" FORCE)
+
+# Set a flag identifying whether to use the HDFEOS library.
+# If not, the GCTP2 library will be used (default).
+set (USE_HDFEOS ${USE_HDFEOS} CACHE BOOL "Use the HDFEOS library for GCTP?"
+     FORCE)
+
+if (NOT GCTP3_INCLUDES)
+    set (GCTP3_INCLUDES $ENV{GCTPINC})
+endif ()
+if (NOT GCTP3_LIBS)
+    set (GCTP3_LIBS "-L$ENV{GCTPLIB} -lgctp3 -lm")
+endif ()
+set (GCTP3_INCLUDES ${GCTP3_INCLUDES} CACHE PATH "GCTP3 header file path"
+     FORCE)
+set (GCTP3_LIBS ${GCTP3_LIBS} CACHE STRING "GCTP3 libraries" FORCE)
+
+if (NOT HDF4_INCLUDES)
+    set (HDF4_INCLUDES $ENV{HDFINC})
+endif ()
+if (NOT HDF4_LIBS)
+    set (HDF4_LIBS "-L$ENV{HDFLIB} -lmfhdf -ldf -ljpeg -lz -lm")
+endif ()
+set (HDF4_INCLUDES ${HDF4_INCLUDES} CACHE PATH "HDF 4 header file path" FORCE)
+set (HDF4_LIBS ${HDF4_LIBS} CACHE STRING "HDF 4 libraries" FORCE)
+
+if (NOT NETCDF_INCLUDES)
+    if (DEFINED ENV{NCDF4INC})
+        set (NETCDF_INCLUDES $ENV{NCDF4INC})
+        set (NETCDF_LIBS "-L$ENV{NCDF4LIB} -lnetcdf")
+    else ()
+        pkg_check_modules(NETCDF netcdf)
+        if (NETCDF_FOUND)
+            set (NETCDF_INCLUDES ${NETCDF_INCLUDE_DIRS})
+            set (NETCDF_LIBS ${NETCDF_LDFLAGS})
+        endif ()
+    endif ()
+elseif (NOT NETCDF_LIBS)
+    # If NETCDF_INCLUDES is set, it's assumed that NETCDF_LIBS is also set.
+    message(FATAL_ERROR "NETCDF_LIBS must be set if NETCDF_INCLUDES is set.")
+endif ()
+set (NETCDF_INCLUDES ${NETCDF_INCLUDES} CACHE PATH "NetCDF header file path"
+     FORCE)
+set (NETCDF_LIBS ${NETCDF_LIBS} CACHE STRING "NetCDF libraries" FORCE)
+
+if (NOT TIFF_INCLUDES)
+    if (DEFINED ENV{TIFFINC})
+        set (TIFF_INCLUDES $ENV{TIFFINC})
+        set (TIFF_LIBS "-L$ENV{TIFFLIB} -ltiff -ljpeg -lz -lm")
+    else ()
+        find_package (TIFF)
+        if (TIFF_FOUND)
+            set (TIFF_INCLUDES ${TIFF_INCLUDE_DIRS})
+            set (TIFF_LIBS ${TIFF_LIBRARIES})
+        endif ()
+    endif ()
+elseif (NOT TIFF_LIBS)
+    # If TIFF_INCLUDES is set, it's assumed that TIFF_LIBS is also set.
+    message(FATAL_ERROR "TIFF_LIBS must be set if TIFF_INCLUDES is set.")
+endif ()
+set (TIFF_INCLUDES ${TIFF_INCLUDES} CACHE PATH "TIFF header file path" FORCE)
+set (TIFF_LIBS ${TIFF_LIBS} CACHE STRING "TIFF libraries" FORCE)
+
+if (NOT GEOTIFF_INCLUDES)
+    set (GEOTIFF_INCLUDES $ENV{GEOTIFF_INC})
+endif ()
+if (NOT GEOTIFF_LIBS)
+    set (GEOTIFF_LIBS "-L$ENV{GEOTIFF_LIB} -lgeotiff")
+endif ()
+set (GEOTIFF_INCLUDES ${GEOTIFF_INCLUDES}
+     CACHE PATH "geoTIFF header file path" FORCE)
+set (GEOTIFF_LIBS ${GEOTIFF_LIBS} CACHE STRING "geoTIFF libraries" FORCE)
+
+if (NOT ODL_INCLUDES)
+    set (ODL_INCLUDES $ENV{ODLINC})
+endif ()
+if (NOT ODL_LIBS)
+    set (ODL_LIBS "-L$ENV{ODLLIB} -llab3")
+endif ()
+set (ODL_INCLUDES ${ODL_INCLUDES} CACHE PATH "ODL header file path" FORCE)
+set (ODL_LIBS ${ODL_LIBS} CACHE STRING "ODL libraries" FORCE)
+
+if (NOT IAS_INCLUDES)
+    set (IAS_INCLUDES $ENV{IAS_INC})
+endif ()
+if (NOT IAS_LIBS)
+    set (IAS_LIBS -L$ENV{IAS_LIB} -lias -lgxxanglecoef -lxxx)
+endif ()
+set (IAS_INCLUDES ${IAS_INCLUDES} CACHE PATH "IAS library header file path"
+     FORCE)
+set (IAS_LIBS ${IAS_LIBS} CACHE STRING "IAS libraries" FORCE)
+add_definitions(-DIAS_NO_DB)
+
+# Set the runtime path for executables to the appropriate shared libraries.
+# This is important for systems that contain a system-installed library
+# as well as the one being linked with at build time.
+set (CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+add_subdirectory(raw_binary)
+add_subdirectory(py_modules)
+add_subdirectory(schema)

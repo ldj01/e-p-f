@@ -19,7 +19,12 @@ NOTES:
 
 #include <unistd.h>
 #include <math.h>
+#ifdef USE_HDFEOS
 #include "HE2_config.h"
+#else
+#include <proj.h>
+#define GCTP_GEO GEO
+#endif
 #include "convert_espa_to_hdf.h"
 
 #define OUTPUT_PROVIDER ("DataProvider")
@@ -81,7 +86,9 @@ int write_global_attributes
     char FUNC_NAME[] = "write_global_attributes";  /* function name */
     char errmsg[STR_SIZE];        /* error message */
     char hdf_version[] = H4_VERSION;  /* version for HDF4 */
+#ifdef USE_HDFEOS
     char hdfeos_version[] = PACKAGE_VERSION;  /* version for HDFEOS */
+#endif
     double dval[MAX_TOTAL_BANDS]; /* attribute values to be written */
     Espa_hdf_attr_t attr;         /* attribute fields */
     Espa_global_meta_t *gmeta = &xml_metadata->global;
@@ -295,6 +302,7 @@ int write_global_attributes
         return (ERROR);
     }
 
+#ifdef USE_HDFEOS
     attr.type = DFNT_CHAR8;
     attr.nval = strlen (hdfeos_version);
     attr.name = OUTPUT_HDFEOS_VERSION;
@@ -304,7 +312,8 @@ int write_global_attributes
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
-  
+#endif
+
     /* Use the production date from the first band */
     attr.type = DFNT_CHAR8;
     attr.nval = strlen (xml_metadata->band[0].production_date);

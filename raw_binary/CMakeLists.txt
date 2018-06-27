@@ -1,0 +1,7 @@
+add_subdirectory(common)
+add_subdirectory(io_libs)
+add_subdirectory(format_conversion_libs)
+add_subdirectory(level1_libs)
+add_subdirectory(per_pixel_angles_libs)
+add_subdirectory(land_water_mask_libs)
+add_subdirectory(tools)

@@ -7,7 +7,7 @@
 #include "espa_hdf_eos.h"
 
 /* IAS Includes */
-#include "ias_lw_geo.h"
+#include "ias_geo.h"
 #include "gctp.h"
 
 #define NAME_STRLEN  256

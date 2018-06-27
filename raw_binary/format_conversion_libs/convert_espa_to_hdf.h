@@ -25,7 +25,9 @@ NOTES:
 #include "parse_metadata.h"
 #include "write_metadata.h"
 #include "espa_hdf.h"
+#ifdef USE_HDFEOS
 #include "espa_hdf_eos.h"
+#endif
 #include "envi_header.h"
 #include "raw_binary_io.h"
 

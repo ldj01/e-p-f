@@ -20,7 +20,12 @@ NOTES:
 #include <math.h>
 #include "hdf.h"
 #include "mfhdf.h"
+#ifdef USE_HDFEOS
 #include "HdfEosDef.h"
+#else
+#include <proj.h>
+#define GCTP_GEO GEO
+#endif
 #include "espa_metadata.h"
 #include "espa_hdf.h"
 #include "error_handler.h"
