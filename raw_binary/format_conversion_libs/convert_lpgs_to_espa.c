@@ -1583,7 +1583,6 @@ int convert_lpgs_to_espa
 {
     char FUNC_NAME[] = "convert_lpgs_to_espa";  /* function name */
     char errmsg[STR_SIZE];   /* error message */
-    char *cptr = NULL;       /* pointer to _MTL.txt in the MTL filename */
     Espa_internal_meta_t xml_metadata;  /* XML metadata structure to be
                                 populated by reading the MTL metadata file */
     int i;                   /* looping variable */
@@ -1604,21 +1603,6 @@ int convert_lpgs_to_espa
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
-
-    /* Add the product ID which is pulled from the MTL filename
-       ({product_id}_MTL.txt) */
-    count = snprintf (xml_metadata.global.product_id,
-        sizeof (xml_metadata.global.product_id), "%s", lpgs_mtl_file);
-    if (count < 0 || count >= sizeof (xml_metadata.global.product_id))
-    {
-        sprintf (errmsg, "Overflow of xml_metadata.global.product_id string");
-        error_handler (true, FUNC_NAME, errmsg);
-        return (ERROR);
-    }
-
-    /* Strip off _MTL.txt filename extension to get the actual product name */
-    cptr = strrchr (xml_metadata.global.product_id, '_');
-    *cptr = '\0';
 
     /* Write the metadata from our internal metadata structure to the output
        XML filename */

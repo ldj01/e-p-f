@@ -744,7 +744,7 @@ int create_hdf_metadata
            current output files will be little endian.  HDF uses big endian
            for their byte order.) */
         count = snprintf (bendian_file, sizeof (bendian_file), "%s",
-            input_file);
+            xml_metadata->band[i].file_name);
         if (count < 0 || count >= sizeof (bendian_file))
         {
             sprintf (errmsg, "Overflow of bendian_file string");
@@ -1119,7 +1119,7 @@ int convert_espa_to_hdf
         strcpy (cptr, "_hdf.img");
 
         /* Update the XML file to use the new band names */
-        strcpy (input_file, bendian_file);
+        strcpy (xml_metadata.band[i].file_name, bendian_file);
     }
 
     /* Create the XML file for the HDF product */
