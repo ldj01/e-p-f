@@ -1,6 +1,6 @@
 /*****************************************************************************
 FILE: convert_lpgs_to_espa.c
-  
+
 PURPOSE: Contains functions for reading LPGS input GeoTIFF products and
 writing to ESPA raw binary format.
 
@@ -17,6 +17,7 @@ NOTES:
 *****************************************************************************/
 #include <unistd.h>
 #include <math.h>
+#include <string.h>
 #include "convert_lpgs_to_espa.h"
 
 /******************************************************************************
@@ -54,6 +55,7 @@ int read_lpgs_mtl
     char errmsg[STR_SIZE];    /* error message */
     char category[STR_SIZE][MAX_LPGS_BANDS]; /* band category - qa, image */
     char band_num[STR_SIZE][MAX_LPGS_BANDS]; /* band number for band name */
+    char source_dir[STR_SIZE] = ""; /* directory location of source bands */
     int i;                    /* looping variable */
     int count;                /* number of chars copied in snprintf */
     int band_count = 0;       /* count of the bands processed so we don't have
@@ -90,7 +92,7 @@ int read_lpgs_mtl
                                         calculations */
     float band_bias[MAX_LPGS_BANDS]; /* bias values for band radiance
                                         calculations */
-    float refl_gain[MAX_LPGS_BANDS]; /* gain values for TOA reflectance 
+    float refl_gain[MAX_LPGS_BANDS]; /* gain values for TOA reflectance
                                         calculations */
     float refl_bias[MAX_LPGS_BANDS]; /* bias values for TOA reflectance
                                         calculations */
@@ -104,6 +106,14 @@ int read_lpgs_mtl
     char *seperator = "=\" \t";            /* separator string */
     float fnum;                            /* temporary variable for floating
                                               point numbers */
+
+    /* Identify the source data directory */
+    if (strchr(mtl_file, '/') != NULL)
+    {
+        strncpy(source_dir, mtl_file, sizeof(source_dir));
+        tokenptr = strrchr(source_dir, '/');
+        *tokenptr = '\0';
+    }
 
     /* Open the metadata MTL file with read privelages */
     mtl_fptr = fopen (mtl_file, "r");
@@ -127,7 +137,7 @@ int read_lpgs_mtl
         /* Get string token */
         tokenptr = strtok (buffer, seperator);
         label = tokenptr;
- 
+
         if (tokenptr != NULL)
         {
             tokenptr = strtok (NULL, seperator);
@@ -1009,6 +1019,7 @@ int read_lpgs_mtl
         return (ERROR);
     }
 
+    /* Cut off the band specification */
     cptr = strrchr (product_id, '_');
     if (cptr == NULL)
     {
@@ -1020,13 +1031,27 @@ int read_lpgs_mtl
     }
     *cptr = '\0';
 
+    count = snprintf (metadata->global.product_id,
+        sizeof (metadata->global.product_id), "%s", product_id);
+    if (count < 0 || count >= sizeof (metadata->global.product_id))
+    {
+        sprintf (errmsg, "Overflow of xml_metadata.global.product_id string");
+        error_handler (true, FUNC_NAME, errmsg);
+        return (ERROR);
+    }
+
     /* Fill in the band-related metadata for each of the bands */
     *nlpgs_bands = metadata->nbands;
     for (i = 0; i < metadata->nbands; i++)
     {
         /* Handle the general metadata for each band */
-        count = snprintf (lpgs_bands[i], sizeof (lpgs_bands[i]), "%s",
-            band_fname[i]);
+        if (strcmp(source_dir, "") == 0)
+            count = snprintf (lpgs_bands[i], sizeof (lpgs_bands[i]), "%s",
+                band_fname[i]);
+        else
+            count = snprintf (lpgs_bands[i], sizeof (lpgs_bands[i]), "%s/%s",
+                source_dir, band_fname[i]);
+
         if (count < 0 || count >= sizeof (lpgs_bands[i]))
         {
             sprintf (errmsg, "Overflow of lpgs_bands[i] string");
@@ -1293,7 +1318,7 @@ int read_lpgs_mtl
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
-    
+
     /* Compute the geographic bounds using the reflectance band coordinates */
     /* For ascending scenes and scenes in the polar regions, the scenes are
        flipped upside down.  The bounding coords will be correct in North

@@ -138,7 +138,16 @@ short get_args
 
     /* Generate the XML filename from the MTL filename.  Find the _MTL.txt and
        change that to .xml. */
-    *xml_outfile = strdup (*mtl_infile);
+    if (strchr(*mtl_infile, '/') != NULL)
+    {
+        cptr = strrchr(*mtl_infile, '/');
+        cptr++;
+        *xml_outfile = strdup(cptr);
+    }
+    else
+    {
+        *xml_outfile = strdup (*mtl_infile);
+    }
     cptr = strrchr (*xml_outfile, '_');
     *cptr = '\0';
     sprintf (*xml_outfile, "%s.xml", *xml_outfile);
