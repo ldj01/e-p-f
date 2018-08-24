@@ -84,8 +84,6 @@ int convert_espa_to_gtif
         *cptr = '\0';
     }
 
-    printf("Source_dir string: %s\n", source_dir);
-
     /* Loop through the bands in the XML file and convert them to GeoTIFF.
        The filenames will have the GeoTIFF base name followed by _ and the
        band name of each band in the XML file.  Blank spaced in the band name
@@ -101,7 +99,6 @@ int convert_espa_to_gtif
             error_handler (true, FUNC_NAME, errmsg);
             return (ERROR);
         }
-        printf("Output gtif band: %s\n", gtif_band_out);
 
         /* Determine the input GeoTIFF band name and location */
         if (strcmp(source_dir, "") == 0)
@@ -116,7 +113,6 @@ int convert_espa_to_gtif
             error_handler (true, FUNC_NAME, errmsg);
             return (ERROR);
         }
-        printf("Input gtif band: %s\n", gtif_band_in);
 
         /* Loop through this filename and replace any occurances of blank
            spaces with underscores */

@@ -1,6 +1,6 @@
 /*****************************************************************************
 FILE: convert_espa_to_hdf.c
-  
+
 PURPOSE: Contains functions for creating the HDF metadata and links to the
 external SDSs, using the existing raw binary bands for the external SDSs in
 the HDF file.
@@ -136,7 +136,7 @@ int write_global_attributes
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
-  
+
     attr.type = DFNT_CHAR8;
     attr.nval = strlen (gmeta->level1_production_date);
     attr.name = OUTPUT_L1_PROD_DATE;
@@ -147,7 +147,7 @@ int write_global_attributes
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
-  
+
     attr.type = DFNT_CHAR8;
     attr.nval = strlen (gmeta->lpgs_metadata_file);
     attr.name = OUTPUT_LPGS_METADATA;
@@ -157,7 +157,7 @@ int write_global_attributes
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
-  
+
     attr.type = DFNT_FLOAT32;
     attr.nval = 1;
     attr.name = OUTPUT_SUN_ZEN;
@@ -168,7 +168,7 @@ int write_global_attributes
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
-  
+
     attr.type = DFNT_FLOAT32;
     attr.nval = 1;
     attr.name = OUTPUT_SUN_AZ;
@@ -179,7 +179,7 @@ int write_global_attributes
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
-  
+
     attr.type = DFNT_FLOAT32;
     attr.nval = 1;
     attr.name = OUTPUT_EARTH_SUN_DIST;
@@ -190,7 +190,7 @@ int write_global_attributes
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
-  
+
     attr.type = DFNT_INT16;
     attr.nval = 1;
     attr.name = OUTPUT_WRS_SYS;
@@ -201,7 +201,7 @@ int write_global_attributes
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
-  
+
     attr.type = DFNT_INT16;
     attr.nval = 1;
     attr.name = OUTPUT_WRS_PATH;
@@ -212,7 +212,7 @@ int write_global_attributes
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
-  
+
     attr.type = DFNT_INT16;
     attr.nval = 1;
     attr.name = OUTPUT_WRS_ROW;
@@ -223,7 +223,7 @@ int write_global_attributes
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
-  
+
     attr.type = DFNT_FLOAT64;
     attr.nval = 2;
     attr.name = UL_LAT_LONG;
@@ -235,7 +235,7 @@ int write_global_attributes
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
-  
+
     attr.type = DFNT_FLOAT64;
     attr.nval = 2;
     attr.name = LR_LAT_LONG;
@@ -247,7 +247,7 @@ int write_global_attributes
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
-  
+
     attr.type = DFNT_FLOAT64;
     attr.nval = 1;
     attr.name = OUTPUT_WEST_BOUND;
@@ -258,7 +258,7 @@ int write_global_attributes
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
-  
+
     attr.type = DFNT_FLOAT64;
     attr.nval = 1;
     attr.name = OUTPUT_EAST_BOUND;
@@ -269,7 +269,7 @@ int write_global_attributes
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
-  
+
     attr.type = DFNT_FLOAT64;
     attr.nval = 1;
     attr.name = OUTPUT_NORTH_BOUND;
@@ -280,7 +280,7 @@ int write_global_attributes
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
-  
+
     attr.type = DFNT_FLOAT64;
     attr.nval = 1;
     attr.name = OUTPUT_SOUTH_BOUND;
@@ -325,7 +325,7 @@ int write_global_attributes
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
-  
+
     /* Successful write */
     return (SUCCESS);
 }
@@ -595,6 +595,7 @@ int create_hdf_metadata
 (
     char *hdf_file,                     /* I: output HDF filename */
     Espa_internal_meta_t *xml_metadata, /* I: XML metadata structure */
+    char source_dir[], /* I: Source directory of input data */
     bool del_src           /* I: should the source files be removed after
                                  conversion? */
 )
@@ -604,6 +605,7 @@ int create_hdf_metadata
     char bendian_file[STR_SIZE];  /* name of output big endian img file */
     char dim_name[2][STR_SIZE];   /* array of dimension names */
     char hdr_file[STR_SIZE];      /* ENVI header file */
+    char input_file[STR_SIZE];    /* Path and filename of input file */
     char *cptr = NULL;            /* pointer to the file extension */
     int i;                        /* looping variable for each SDS */
     int nbytes;                   /* number of bytes in the data type */
@@ -644,12 +646,26 @@ int create_hdf_metadata
         /* Provide the status of processing */
         printf ("Processing SDS: %s\n", xml_metadata->band[i].name);
 
+        /* Determine the input file name and location */
+        if (strcmp(source_dir, "") == 0)
+            count = snprintf (input_file, sizeof(input_file), "%s",
+                xml_metadata->band[i].file_name);
+        else
+            count = snprintf (input_file, sizeof(input_file), "%s/%s",
+                source_dir, xml_metadata->band[i].file_name);
+        if (count < 0 || count >= sizeof(input_file))
+        {
+            sprintf (errmsg, "Overflow of file_name string");
+            error_handler (true, FUNC_NAME, errmsg);
+            return ERROR;
+        }
+
         /* Open the file for this band of data to allow for reading */
-        fp_rb = open_raw_binary (xml_metadata->band[i].file_name, "rb");
+        fp_rb = open_raw_binary (input_file, "rb");
         if (fp_rb == NULL)
         {
             sprintf (errmsg, "Opening the input raw binary file: %s",
-                xml_metadata->band[i].file_name);
+                input_file);
             error_handler (true, FUNC_NAME, errmsg);
             return (ERROR);
         }
@@ -728,7 +744,7 @@ int create_hdf_metadata
            current output files will be little endian.  HDF uses big endian
            for their byte order.) */
         count = snprintf (bendian_file, sizeof (bendian_file), "%s",
-            xml_metadata->band[i].file_name);
+            input_file);
         if (count < 0 || count >= sizeof (bendian_file))
         {
             sprintf (errmsg, "Overflow of bendian_file string");
@@ -801,7 +817,7 @@ int create_hdf_metadata
         for (dim = 0; dim < rank; dim++)
         {
             dim_id = SDgetdimid (sds_id, dim);
-            if (dim_id == HDF_ERROR) 
+            if (dim_id == HDF_ERROR)
             {
                 sprintf (errmsg, "Getting dimension id for dimension %d and "
                     "SDS %d.", dim, i);
@@ -862,18 +878,16 @@ int create_hdf_metadata
         if (del_src)
         {
             /* .img file */
-            printf ("  Removing %s\n", xml_metadata->band[i].file_name);
-            if (unlink (xml_metadata->band[i].file_name) != 0)
+            printf ("  Removing %s\n", input_file);
+            if (unlink (input_file) != 0)
             {
-                sprintf (errmsg, "Deleting source file: %s",
-                    xml_metadata->band[i].file_name);
+                sprintf (errmsg, "Deleting source file: %s", input_file);
                 error_handler (true, FUNC_NAME, errmsg);
                 return (ERROR);
             }
 
             /* .hdr file */
-            count = snprintf (hdr_file, sizeof (hdr_file), "%s",
-                xml_metadata->band[i].file_name);
+            count = snprintf (hdr_file, sizeof (hdr_file), "%s", input_file);
             if (count < 0 || count >= sizeof (hdr_file))
             {
                 sprintf (errmsg, "Overflow of hdr_file string");
@@ -948,6 +962,7 @@ int convert_espa_to_hdf
     char hdr_file[STR_SIZE]; /* ENVI header file */
     char xml_file[STR_SIZE]; /* new XML file for the HDF product */
     char bendian_file[STR_SIZE];  /* name of output big endian img file */
+    char source_dir[STR_SIZE] = ""; /* directory location of source bands */
     char *cptr = NULL;       /* pointer to empty space in the band name */
     int i;                   /* looping variable */
     int count;               /* number of chars copied in snprintf */
@@ -973,9 +988,18 @@ int convert_espa_to_hdf
         return (ERROR);
     }
 
+    /* Determine if the files are being read from a location other than cwd */
+    if (strchr(espa_xml_file, '/') != NULL)
+    {
+        strncpy(source_dir, espa_xml_file, sizeof(source_dir));
+        cptr = strrchr(source_dir, '/');
+        *cptr = '\0';
+    }
+
     /* Create the HDF file for the HDF metadata from the XML metadata.  This
        also creates the big endian files for the HDF file. */
-    if (create_hdf_metadata (hdf_file, &xml_metadata, del_src) != SUCCESS)
+    if (create_hdf_metadata (hdf_file, &xml_metadata, source_dir,
+        del_src) != SUCCESS)
     {
         sprintf (errmsg, "Creating the HDF metadata file (%s) which links to "
             "the raw binary bands as external SDSs.", hdf_file);
@@ -1095,7 +1119,7 @@ int convert_espa_to_hdf
         strcpy (cptr, "_hdf.img");
 
         /* Update the XML file to use the new band names */
-        strcpy (xml_metadata.band[i].file_name, bendian_file);
+        strcpy (input_file, bendian_file);
     }
 
     /* Create the XML file for the HDF product */

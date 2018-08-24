@@ -51,6 +51,7 @@ int create_hdf_metadata
 (
     char *hdf_file,                     /* I: output HDF filename */
     Espa_internal_meta_t *xml_metadata, /* I: XML metadata structure */
+    char source_dir[], /* I: Source directory of input data */
     bool del_src           /* I: should the source files be removed after
                                  conversion? */
 );
