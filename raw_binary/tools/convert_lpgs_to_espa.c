@@ -138,11 +138,11 @@ short get_args
 
     /* Generate the XML filename from the MTL filename.  Find the _MTL.txt and
        change that to .xml. */
-    if (strchr(*mtl_infile, '/') != NULL)
+    if (strchr (*mtl_infile, '/') != NULL)
     {
-        cptr = strrchr(*mtl_infile, '/');
+        cptr = strrchr (*mtl_infile, '/');
         cptr++;
-        *xml_outfile = strdup(cptr);
+        *xml_outfile = strdup (cptr);
     }
     else
     {
