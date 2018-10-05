@@ -603,6 +603,7 @@ int create_hdf_metadata
     char FUNC_NAME[] = "create_hdf_metadata";  /* function name */
     char errmsg[STR_SIZE];        /* error message */
     char bendian_file[STR_SIZE];  /* name of output big endian img file */
+    char hdf_file_root[STR_SIZE]; /* root of output HDF filename */
     char dim_name[2][STR_SIZE];   /* array of dimension names */
     char hdr_file[STR_SIZE];      /* ENVI header file */
     char input_file[STR_SIZE];    /* Path and filename of input file */
@@ -628,6 +629,12 @@ int create_hdf_metadata
     int32 edge[2];                /* number of values to write the HDF data */
     FILE *fp_rb = NULL;           /* file pointer for the raw binary file */
     void *file_buf = NULL;        /* pointer to correct input file buffer */
+
+    /* Determine the root of the HDF filename */
+    strcpy(hdf_file_root, hdf_file);
+    cptr = strrchr (hdf_file_root, '.');
+    if (cptr != NULL)
+        *cptr = '\0';
 
     /* Open the HDF file for creation (overwriting if it exists) */
     hdf_id = SDstart (hdf_file, DFACC_CREATE);
@@ -743,8 +750,8 @@ int create_hdf_metadata
            the HDF files.  (It's assumed we are running on Linux, thus the
            current output files will be little endian.  HDF uses big endian
            for their byte order.) */
-        count = snprintf (bendian_file, sizeof (bendian_file), "%s",
-            xml_metadata->band[i].file_name);
+        count = snprintf (bendian_file, sizeof (bendian_file), "%s_%s_hdf.img",
+            hdf_file_root, xml_metadata->band[i].name);
         if (count < 0 || count >= sizeof (bendian_file))
         {
             sprintf (errmsg, "Overflow of bendian_file string");
@@ -752,10 +759,12 @@ int create_hdf_metadata
             return (ERROR);
         }
 
+        /*
         cptr = strrchr (bendian_file, '.');
         if (cptr != NULL)
             *cptr = '\0';
         strcpy (cptr, "_hdf.img");
+         */
 
         /* Select/create the SDS index for the current band */
         sds_id = SDcreate (hdf_id, xml_metadata->band[i].name, data_type,
