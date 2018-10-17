@@ -693,13 +693,13 @@ int read_lpgs_mtl
                     error_handler (true, FUNC_NAME, errmsg);
                     return (ERROR);
                 }
-                strcpy (category[band_count], "angle_bands");
+                strcpy (category[band_count], "image");
                 strcpy (band_num[band_count], "sensor_azimuth_band4");
                 thermal[band_count] = false;
                 band_count++;  /* increment the band count */
             }
             /* sensor zenith */
-            else if (!strcmp (label, "FILE_NAME_SEZ_BAND_4")) 
+            else if (!strcmp (label, "FILE_NAME_SEZ_BAND_4"))
             {
                 count = snprintf (band_fname[band_count],
                     sizeof (band_fname[band_count]), "%s", tokenptr);
@@ -710,13 +710,13 @@ int read_lpgs_mtl
                     error_handler (true, FUNC_NAME, errmsg);
                     return (ERROR);
                 }
-                strcpy (category[band_count], "angle_bands");
+                strcpy (category[band_count], "image");
                 strcpy (band_num[band_count], "sensor_zenith_band4");
                 thermal[band_count] = false;
                 band_count++;  /* increment the band count */
             }
             /* solar azimuth angle */
-            else if (!strcmp (label, "FILE_NAME_SAA_BAND_4")) 
+            else if (!strcmp (label, "FILE_NAME_SAA_BAND_4"))
             {
                 count = snprintf (band_fname[band_count],
                     sizeof (band_fname[band_count]), "%s", tokenptr);
@@ -727,13 +727,13 @@ int read_lpgs_mtl
                     error_handler (true, FUNC_NAME, errmsg);
                     return (ERROR);
                 }
-                strcpy (category[band_count], "angle_bands");
+                strcpy (category[band_count], "image");
                 strcpy (band_num[band_count], "solar_azimuth_band4");
                 thermal[band_count] = false;
                 band_count++;  /* increment the band count */
             }
             /* solar zenith angle */
-            else if (!strcmp (label, "FILE_NAME_SZA_BAND_4")) 
+            else if (!strcmp (label, "FILE_NAME_SZA_BAND_4"))
             {
                 count = snprintf (band_fname[band_count],
                     sizeof (band_fname[band_count]), "%s", tokenptr);
@@ -744,7 +744,7 @@ int read_lpgs_mtl
                     error_handler (true, FUNC_NAME, errmsg);
                     return (ERROR);
                 }
-                strcpy (category[band_count], "angle_bands");
+                strcpy (category[band_count], "image");
                 strcpy (band_num[band_count], "solar_zenith_band4");
                 thermal[band_count] = false;
                 band_count++;  /* increment the band count */
@@ -1136,6 +1136,7 @@ int read_lpgs_mtl
             return (ERROR);
         }
 
+        /* Use Level 1 product type for all bands */
         count = snprintf (bmeta[i].product, sizeof (bmeta[i].product), "%s",
             tmp_bmeta.product);
         if (count < 0 || count >= sizeof (bmeta[i].product))
@@ -1234,41 +1235,71 @@ int read_lpgs_mtl
             bmeta[i].data_type = ESPA_UINT8;
             bmeta[i].fill_value = 0;
             if (!strcmp (gmeta->satellite, "LANDSAT_4"))
-                strcpy (bmeta[i].short_name, "LT04DN");
+                strcpy (bmeta[i].short_name, "LT04");
             else if (!strcmp (gmeta->satellite, "LANDSAT_5"))
-                strcpy (bmeta[i].short_name, "LT05DN");
+                strcpy (bmeta[i].short_name, "LT05");
         }
         else if (!strncmp (gmeta->instrument, "ETM", 3))
         {
             bmeta[i].data_type = ESPA_UINT8;
             bmeta[i].fill_value = 0;
-            strcpy (bmeta[i].short_name, "LE07DN");
+            strcpy (bmeta[i].short_name, "LE07");
         }
         else if (!strcmp (gmeta->instrument, "OLI_TIRS"))
         {
             bmeta[i].data_type = ESPA_UINT16;
             bmeta[i].fill_value = 0;
-            strcpy (bmeta[i].short_name, "LC08DN");
+            strcpy (bmeta[i].short_name, "LC08");
         }
         else if (!strcmp (gmeta->instrument, "OLI"))
         {
             bmeta[i].data_type = ESPA_UINT16;
             bmeta[i].fill_value = 0;
-            strcpy (bmeta[i].short_name, "LO08DN");
+            strcpy (bmeta[i].short_name, "LO08");
         }
 
         /* Set up the band names - use lower case 'b' versus upper case 'B'
            to distinguish ESPA products from original Level-1 products. */
-        if (!strstr (band_num[i], "bqa") && !strstr (band_num[i], "band4"))
-        {  /* bands other than quality band */
+        if (sscanf(band_num[i], "%d", &count) == 1)
+        { /* band numbers */
             sprintf (bmeta[i].name, "b%s", band_num[i]);
             sprintf (bmeta[i].long_name, "band %s digital numbers",
-              band_num[i]);
+                band_num[i]);
+            strcat (bmeta[i].short_name, "DN");
         }
         else
-        {  /* quality or angle bands */
+        {
             strcpy (bmeta[i].name, band_num[i]);
-            strcpy (bmeta[i].long_name, "band quality");
+            if (strstr(bmeta[i].name, "bqa_pixel"))
+            {
+                strcpy (bmeta[i].long_name, "pixel quality band");
+                strcat (bmeta[i].short_name, "PQA");
+            }
+            else if (strstr(bmeta[i].name, "bqa_radsat"))
+            {
+                strcpy (bmeta[i].long_name, "saturation quality band");
+                strcat (bmeta[i].short_name, "RADSAT");
+            }
+            else if (strstr(bmeta[i].name, "sensor_azimuth_band4"))
+            {
+                strcpy (bmeta[i].long_name, "band 4 sensor azimuth angles");
+                strcat (bmeta[i].short_name, "SENAZ");
+            }
+            else if (strstr(bmeta[i].name, "sensor_zenith_band4"))
+            {
+                strcpy (bmeta[i].long_name, "band 4 sensor zenith angles");
+                strcat (bmeta[i].short_name, "SENZEN");
+            }
+            else if (strstr(bmeta[i].name, "solar_azimuth_band4"))
+            {
+                strcpy (bmeta[i].long_name, "band 4 solar azimuth angles");
+                strcat (bmeta[i].short_name, "SOLAZ");
+            }
+            else if (strstr(bmeta[i].name, "solar_zenith_band4"))
+            {
+                strcpy (bmeta[i].long_name, "band 4 solar zenith angles");
+                strcat (bmeta[i].short_name, "SOLZEN");
+            }
         }
 
         count = snprintf (bmeta[i].file_name, sizeof (bmeta[i].file_name),
@@ -1310,7 +1341,7 @@ int read_lpgs_mtl
             bmeta[i].pixel_size[1] = tmp_bmeta.pixel_size[1];
         }
 
-        /* If this is the Collection 1 QA band, then overwrite some things for 
+        /* If this is the Collection 1 QA band, then overwrite some things for
            the QA band itself */
         if (!strcmp (band_num[i], "bqa"))
         {
@@ -1373,7 +1404,7 @@ int read_lpgs_mtl
             strcpy (bmeta[i].bitmap_description[15], "Not used");
         }
 
-        /* If this is the Collection 2 Pixel QA band, then overwrite some 
+        /* If this is the Collection 2 Pixel QA band, then overwrite some
          * things */
         else if (!strcmp (band_num[i], "bqa_pixel"))
         {
@@ -1437,12 +1468,12 @@ int read_lpgs_mtl
             }
         }
 
-        /* If this is the Collection 2 Rad Sat QA band, then overwrite some 
+        /* If this is the Collection 2 Rad Sat QA band, then overwrite some
          * things */
         else if (!strcmp (band_num[i], "bqa_radsat"))
         {
             count = snprintf (bmeta[i].data_units, sizeof (bmeta[i].data_units),
-                "%s", "saturation and artifacts");
+                "%s", "bitmap");
             if (count < 0 || count >= sizeof (bmeta[i].data_units))
             {
                 sprintf (errmsg, "Overflow of bmeta[i].data_units string");
@@ -1492,15 +1523,28 @@ int read_lpgs_mtl
         }
 
         /* Collection 2 angle bands */
-        else if (!strcmp (category[i], "angle_bands"))
+        else if (strstr (band_num[i], "zenith") ||
+                 strstr (band_num[i], "azimuth"))
         {
-            bmeta[i].data_type = ESPA_UINT16;
-            bmeta[i].valid_range[0] = 0.0;
-            bmeta[i].valid_range[1] = 65535.0;
-            bmeta[i].rad_gain = ESPA_FLOAT_META_FILL;
-            bmeta[i].rad_bias = ESPA_FLOAT_META_FILL;
+            bmeta[i].data_type = ESPA_INT16;
             bmeta[i].scale_factor = 0.01;
             bmeta[i].add_offset = 0.00;
+            /* Use a realistic range for aziumuth / zenith (-180 - 180) */
+            bmeta[i].valid_range[0] = -180.0 / bmeta[i].scale_factor
+                + bmeta[i].add_offset;
+            bmeta[i].valid_range[1] = 180.0 / bmeta[i].scale_factor
+                + bmeta[i].add_offset;
+            bmeta[i].rad_gain = ESPA_FLOAT_META_FILL;
+            bmeta[i].rad_bias = ESPA_FLOAT_META_FILL;
+            count = snprintf (bmeta[i].data_units, sizeof (bmeta[i].data_units),
+                "%s", "degrees");
+            if (count < 0 || count >= sizeof (bmeta[i].data_units))
+            {
+                sprintf (errmsg, "Overflow of bmeta[i].data_units string");
+                error_handler (true, FUNC_NAME, errmsg);
+                return (ERROR);
+            }
+
         }
     }
 
