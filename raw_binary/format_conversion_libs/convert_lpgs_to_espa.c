@@ -1852,6 +1852,7 @@ int convert_lpgs_to_espa
 
     /* Initialize the metadata structure */
     init_metadata_struct (&xml_metadata);
+    memset(convert_lpgs_bands, 1, sizeof(convert_lpgs_bands));
 
     /* Read the LPGS MTL file and populate our internal ESPA metadata
        structure */
