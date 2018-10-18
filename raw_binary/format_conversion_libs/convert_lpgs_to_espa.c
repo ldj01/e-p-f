@@ -17,6 +17,7 @@ NOTES:
 *****************************************************************************/
 #include <unistd.h>
 #include <math.h>
+#include <string.h>
 #include "convert_lpgs_to_espa.h"
 
 /******************************************************************************
@@ -1828,8 +1829,9 @@ int convert_lpgs_to_espa
 (
     char *lpgs_mtl_file,   /* I: input LPGS MTL metadata filename */
     char *espa_xml_file,   /* I: output ESPA XML metadata filename */
-    bool del_src           /* I: should the source .tif files be removed after
+    bool del_src,          /* I: should the source .tif files be removed after
                                  conversion? */
+    bool sr_st_only        /* I: only convert bands required for SR/ST */
 )
 {
     char FUNC_NAME[] = "convert_lpgs_to_espa";  /* function name */
@@ -1837,11 +1839,15 @@ int convert_lpgs_to_espa
     char *cptr = NULL;       /* pointer to _MTL.txt in the MTL filename */
     Espa_internal_meta_t xml_metadata;  /* XML metadata structure to be
                                 populated by reading the MTL metadata file */
-    int i;                   /* looping variable */
+    int i,j;                 /* looping variable */
     int nlpgs_bands;         /* number of bands in the LPGS product */
     int count;               /* number of chars copied in snprintf */
     char lpgs_bands[MAX_LPGS_BANDS][STR_SIZE];  /* array containing the file
                                 names of the LPGS bands */
+    char exclude_bands[][STR_SIZE] =  /* bands to exclude, not used in SR/ST */
+        {"b62", "b8", "b9",
+         "sensor_azimuth_band4", "sensor_zenith_band4", "solar_azimuth_band4"};
+    int  nexclude = sizeof(exclude_bands)/STR_SIZE;
 
     /* Initialize the metadata structure */
     init_metadata_struct (&xml_metadata);
@@ -1870,6 +1876,39 @@ int convert_lpgs_to_espa
     /* Strip off _MTL.txt filename extension to get the actual product name */
     cptr = strrchr (xml_metadata.global.product_id, '_');
     *cptr = '\0';
+
+    /* if requested, remove unneeded bands */
+    if (sr_st_only)
+    {
+        for (i = 0; i < nlpgs_bands; i++)
+        {
+            int found_exclude;
+            for (found_exclude=0, j=0; j<nexclude; j++)
+            {
+                if (!strcmp(exclude_bands[j], xml_metadata.band[i].name))
+                {
+                    found_exclude = 1;
+                    break;
+                }
+            }
+
+            /* If this band is in the exclude list, remove by shifting the 
+             * rest of the array and decrementing the array counters */
+            if (found_exclude)
+            {
+                if (i < (nlpgs_bands-1))
+                {
+                    memmove(lpgs_bands[i], lpgs_bands[i+1], 
+                        (nlpgs_bands-i-1)*STR_SIZE); 
+                    memmove(&xml_metadata.band[i], &xml_metadata.band[i+1], 
+                        (nlpgs_bands-i-1)*sizeof(Espa_band_meta_t)); 
+                }
+                i--;
+                nlpgs_bands--;
+                xml_metadata.nbands--;
+            }
+        }
+    }
 
     /* Write the metadata from our internal metadata structure to the output
        XML filename */

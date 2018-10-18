@@ -35,13 +35,16 @@ void usage ()
             "metadata file and associated raw binary files).\n\n");
     printf ("usage: convert_lpgs_to_espa "
             "--mtl=input_mtl_filename "
-            "[--del_src_files]\n");
+            "[--del_src_files] [--sr_st_only]\n");
 
     printf ("\nwhere the following parameters are required:\n");
-    printf ("    -mtl: name of the input LPGS MTL metadata file\n");
-    printf ("    -del_src_files: if specified the source GeoTIFF files will "
+    printf ("    --mtl: name of the input LPGS MTL metadata file\n");
+    printf ("    --del_src_files: if specified the source GeoTIFF files will "
             "be removed.  The _MTL.txt file will remain along with the "
             "gap directory for ETM+ products.\n");
+    printf ("    --sr_st_only: if specified only the bands required for Surface"
+            " Reflectance and Surface Temperature processing are converted;"
+            " other bands are ignored.");
     printf ("\nExample: convert_lpgs_to_espa "
             "--mtl=LE07_L1TP_022033_20140228_20161028_01_T1_MTL.txt\n");
 }
@@ -72,7 +75,8 @@ short get_args
     char *argv[],         /* I: string of cmd-line args */
     char **mtl_infile,    /* O: address of input LPGS MTL filename */
     char **xml_outfile,   /* O: address of output XML filename */
-    bool *del_src         /* O: should source files be removed? */
+    bool *del_src,        /* O: should source files be removed? */
+    bool *sr_st_only      /* O: only convert bands required for SR/ST */
 )
 {
     int c;                           /* current argument index */
@@ -81,9 +85,11 @@ short get_args
     char errmsg[STR_SIZE];           /* error message */
     char FUNC_NAME[] = "get_args";   /* function name */
     static int del_flag = 0;         /* flag for removing the source files */
+    static int sr_st_only_flag = 0;  /* flag for SR/ST required bands only */
     static struct option long_options[] =
     {
         {"del_src_files", no_argument, &del_flag, 1},
+        {"sr_st_only", no_argument, &sr_st_only_flag, 1},
         {"mtl", required_argument, 0, 'i'},
         {"help", no_argument, 0, 'h'},
         {0, 0, 0, 0}
@@ -149,9 +155,11 @@ short get_args
         return (ERROR);
     }
 
-    /* Check the delete source files flag */
+    /* Check optiona flags */
     if (del_flag)
         *del_src = true;
+    if (sr_st_only_flag)
+        *sr_st_only = true;
 
     return (SUCCESS);
 }
@@ -177,15 +185,18 @@ int main (int argc, char** argv)
     char *mtl_infile = NULL;      /* input LPGS MTL filename */
     char *xml_outfile = NULL;     /* output XML filename */
     bool del_src = false;         /* should source files be removed? */
+    bool sr_st_only = false;      /* only convert bands required for SR/ST */
 
     /* Read the command-line arguments */
-    if (get_args (argc, argv, &mtl_infile, &xml_outfile, &del_src) != SUCCESS)
+    if (get_args (argc, argv, &mtl_infile, &xml_outfile, &del_src, &sr_st_only)
+        != SUCCESS)
     {   /* get_args already printed the error message */
         exit (EXIT_FAILURE);
     }
 
     /* Convert the LPGS MTL and data to ESPA raw binary and XML */
-    if (convert_lpgs_to_espa (mtl_infile, xml_outfile, del_src) != SUCCESS)
+    if (convert_lpgs_to_espa (mtl_infile, xml_outfile, del_src, sr_st_only) 
+        != SUCCESS)
     {  /* Error messages already written */
         exit (EXIT_FAILURE);
     }

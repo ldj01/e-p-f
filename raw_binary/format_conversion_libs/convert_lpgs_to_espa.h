@@ -56,8 +56,9 @@ int convert_lpgs_to_espa
 (
     char *lpgs_mtl_file,   /* I: input LPGS MTL metadata filename */
     char *espa_xml_file,   /* I: output ESPA XML metadata filename */
-    bool del_src           /* I: should the source .tif files be removed after
+    bool del_src,          /* I: should the source .tif files be removed after
                                  conversion? */
+    bool sr_st_only        /* I: only convert bands required for SR/ST */
 );
 
 #endif
