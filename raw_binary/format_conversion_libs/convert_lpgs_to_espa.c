@@ -1839,9 +1839,10 @@ int convert_lpgs_to_espa
     char *cptr = NULL;       /* pointer to _MTL.txt in the MTL filename */
     Espa_internal_meta_t xml_metadata;  /* XML metadata structure to be
                                 populated by reading the MTL metadata file */
-    int i,j;                 /* looping variable */
+    int i,j,x;               /* looping variables */
     int nlpgs_bands;         /* number of bands in the LPGS product */
     int count;               /* number of chars copied in snprintf */
+    int convert_lpgs_bands[MAX_LPGS_BANDS]; /* flag to convert each band */
     char lpgs_bands[MAX_LPGS_BANDS][STR_SIZE];  /* array containing the file
                                 names of the LPGS bands */
     char exclude_bands[][STR_SIZE] =  /* bands to exclude, not used in SR/ST */
@@ -1878,35 +1879,37 @@ int convert_lpgs_to_espa
     *cptr = '\0';
 
     /* if requested, remove unneeded bands */
+    /* the lpgs_bands list is kept intact (using the i index), while the
+     * bands in xml_metadata are pared down to only the bands to be kept (using
+     * the x index) */
     if (sr_st_only)
     {
-        for (i = 0; i < nlpgs_bands; i++)
+        for (i = 0, x = 0; i < nlpgs_bands; i++, x++)
         {
             int found_exclude;
             for (found_exclude=0, j=0; j<nexclude; j++)
             {
-                if (!strcmp(exclude_bands[j], xml_metadata.band[i].name))
+                if (!strcmp(exclude_bands[j], xml_metadata.band[x].name))
                 {
                     found_exclude = 1;
                     break;
                 }
             }
 
-            /* If this band is in the exclude list, remove by shifting the 
-             * rest of the array and decrementing the array counters */
+            /* If this band is in the exclude list, remove from the XML list
+             * by shifting the rest of the array and decrementing the band
+             * count */
             if (found_exclude)
             {
                 if (i < (nlpgs_bands-1))
                 {
-                    memmove(lpgs_bands[i], lpgs_bands[i+1], 
-                        (nlpgs_bands-i-1)*STR_SIZE); 
-                    memmove(&xml_metadata.band[i], &xml_metadata.band[i+1], 
-                        (nlpgs_bands-i-1)*sizeof(Espa_band_meta_t)); 
+                    memmove(&xml_metadata.band[x], &xml_metadata.band[x+1],
+                        (nlpgs_bands-i-1)*sizeof(Espa_band_meta_t));
                 }
-                i--;
-                nlpgs_bands--;
+                x--;
                 xml_metadata.nbands--;
             }
+            convert_lpgs_bands[i] = 1 - found_exclude;
         }
     }
 
@@ -1924,16 +1927,20 @@ int convert_lpgs_to_espa
     }
 
     /* Convert each of the LPGS GeoTIFF files to raw binary */
-    for (i = 0; i < nlpgs_bands; i++)
+    for (i = 0, x=0; i < nlpgs_bands; i++)
     {
-        printf ("  Band %d: %s to %s\n", i, lpgs_bands[i],
-            xml_metadata.band[i].file_name);
-        if (convert_gtif_to_img (lpgs_bands[i], &xml_metadata.band[i],
-            &xml_metadata.global) != SUCCESS)
+        if (convert_lpgs_bands[i])
         {
-            sprintf (errmsg, "Converting band %d: %s", i, lpgs_bands[i]);
-            error_handler (true, FUNC_NAME, errmsg);
-            return (ERROR);
+            printf ("  Band %d: %s to %s\n", i, lpgs_bands[i],
+                xml_metadata.band[x].file_name);
+            if (convert_gtif_to_img (lpgs_bands[i], &xml_metadata.band[x],
+                    &xml_metadata.global) != SUCCESS)
+            {
+                sprintf (errmsg, "Converting band %d: %s", i, lpgs_bands[i]);
+                error_handler (true, FUNC_NAME, errmsg);
+                return (ERROR);
+            }
+            x++;
         }
 
         /* Remove the source file if specified */
