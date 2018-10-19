@@ -98,8 +98,5 @@ install(TARGETS ${ALL_TARGETS} DESTINATION bin)
 
 
 # Tests
-add_executable(test_read_gtif test_read_gtif.c)
-target_link_libraries(test_read_gtif espa_format_conversion espa_raw_binary
-                      espa_common
-                      ${XML_LIBS} ${TIFF_LIBS} ${GEOTIFF_LIBS})
+add_subdirectory(tests EXCLUDE_FROM_ALL)
      
