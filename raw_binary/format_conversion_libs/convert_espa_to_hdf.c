@@ -595,9 +595,9 @@ int create_hdf_metadata
 (
     char *hdf_file,                     /* I: output HDF filename */
     Espa_internal_meta_t *xml_metadata, /* I: XML metadata structure */
-    char source_dir[], /* I: Source directory of input data */
-    bool del_src           /* I: should the source files be removed after
-                                 conversion? */
+    char source_dir[],                  /* I: Source directory of input data */
+    bool del_src                        /* I: should the source files be 
+                                              removed after conversion? */
 )
 {
     char FUNC_NAME[] = "create_hdf_metadata";  /* function name */
@@ -758,13 +758,6 @@ int create_hdf_metadata
             error_handler (true, FUNC_NAME, errmsg);
             return (ERROR);
         }
-
-        /*
-        cptr = strrchr (bendian_file, '.');
-        if (cptr != NULL)
-            *cptr = '\0';
-        strcpy (cptr, "_hdf.img");
-         */
 
         /* Select/create the SDS index for the current band */
         sds_id = SDcreate (hdf_id, xml_metadata->band[i].name, data_type,

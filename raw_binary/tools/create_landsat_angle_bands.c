@@ -201,7 +201,6 @@ int main (int argc, char** argv)
     char *cptr = NULL;           /* pointer to file extension */
     char *xml_infile = NULL;     /* input XML filename */
     bool process_l7 = false;     /* are we processing L7 vs. L4-5 */
-    bool process_l45 = false;    /* are we processing L4-5 vs. L7 */
     int i;                       /* looping variable for bands */
     int curr_bnd;                /* current input band location */
     int curr_band;               /* current input band number */
@@ -277,8 +276,6 @@ int main (int argc, char** argv)
     /* Determine which instrument is being processed */
     if (!strncmp (gmeta->instrument, "ETM", 3))
         process_l7 = true;
-    else
-        process_l45 = true;
 
     /* Determine the angle coefficient filename and the output file basename */
     strcpy (ang_infile, xml_infile);

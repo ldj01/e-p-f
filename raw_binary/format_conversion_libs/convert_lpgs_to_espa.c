@@ -1023,7 +1023,7 @@ int read_lpgs_mtl
     cptr = strrchr (product_id, '_');
     if (cptr == NULL)
     {
-        sprintf (errmsg, "Unsuspected format for the filename.  Expected "
+        sprintf (errmsg, "Unsupported format for the filename.  Expected "
             "{product_id}_Bx.* however no '_' was found in the filename: %s.",
             product_id);
         error_handler (true, FUNC_NAME, errmsg);
@@ -1587,7 +1587,6 @@ int convert_lpgs_to_espa
                                 populated by reading the MTL metadata file */
     int i;                   /* looping variable */
     int nlpgs_bands;         /* number of bands in the LPGS product */
-    int count;               /* number of chars copied in snprintf */
     char lpgs_bands[MAX_LPGS_BANDS][STR_SIZE];  /* array containing the file
                                 names of the LPGS bands */
 

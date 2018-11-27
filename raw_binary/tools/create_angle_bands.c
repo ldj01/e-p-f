@@ -225,7 +225,6 @@ int main (int argc, char** argv)
     bool process_l7 = false;     /* are we processing L7 vs. L4-5 or L8 */
     bool process_l45 = false;    /* are we processing L4-5 vs. L7 or L8 */
     int i;                       /* looping variable for bands */
-    int count;                   /* number of chars copied in snprintf */
     int curr_band;               /* current input band number */
     int curr_bndx;               /* index of current input band */
     int nbands;                  /* number of input bands to be read */
@@ -599,7 +598,7 @@ int main (int argc, char** argv)
             {
                 case (SOLAR_ZEN):  /* solar zenith */
                     /* Determine the output file for the solar zenith band */
-                    count = snprintf (tmpfile, sizeof (tmpfile),
+                    snprintf (tmpfile, sizeof (tmpfile),
                         "%s_avg_solar_zenith.img", outfile);
                     sprintf (out_bmeta->name, "avg_solar_zenith_band");
                     strncpy (tmpstr, bmeta->short_name, 4);
@@ -610,7 +609,7 @@ int main (int argc, char** argv)
 
                 case (SOLAR_AZ):  /* solar zenith */
                     /* Determine the output file for the solar azimuth band */
-                    count = snprintf (tmpfile, sizeof (tmpfile),
+                    snprintf (tmpfile, sizeof (tmpfile),
                         "%s_avg_solar_azimuth.img", outfile);
                     sprintf (out_bmeta->name, "avg_solar_azimuth_band");
                     strncpy (tmpstr, bmeta->short_name, 4);
@@ -621,7 +620,7 @@ int main (int argc, char** argv)
 
                 case (SENSOR_ZEN):  /* sensor zenith */
                     /* Determine the output file for the sensor zenith band */
-                    count = snprintf (tmpfile, sizeof (tmpfile),
+                    snprintf (tmpfile, sizeof (tmpfile),
                         "%s_avg_sensor_zenith.img", outfile);
                     sprintf (out_bmeta->name, "avg_sensor_zenith_band");
                     strncpy (tmpstr, bmeta->short_name, 4);
@@ -632,7 +631,7 @@ int main (int argc, char** argv)
 
                 case (SENSOR_AZ):  /* sensor azimuth */
                     /* Determine the output file for the sensor azimuth band */
-                    count = snprintf (tmpfile, sizeof (tmpfile),
+                    snprintf (tmpfile, sizeof (tmpfile),
                         "%s_avg_sensor_azimuth.img", outfile);
                     sprintf (out_bmeta->name, "avg_sensor_azimuth_band");
                     strncpy (tmpstr, bmeta->short_name, 4);

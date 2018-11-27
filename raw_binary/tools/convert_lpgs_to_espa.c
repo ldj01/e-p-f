@@ -141,8 +141,7 @@ short get_args
     if (strchr (*mtl_infile, '/') != NULL)
     {
         cptr = strrchr (*mtl_infile, '/');
-        cptr++;
-        *xml_outfile = strdup (cptr);
+        *xml_outfile = strdup (cptr+1);
     }
     else
     {
