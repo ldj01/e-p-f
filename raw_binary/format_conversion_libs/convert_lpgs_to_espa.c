@@ -1,6 +1,6 @@
 /*****************************************************************************
 FILE: convert_lpgs_to_espa.c
-  
+
 PURPOSE: Contains functions for reading LPGS input GeoTIFF products and
 writing to ESPA raw binary format.
 
@@ -17,6 +17,7 @@ NOTES:
 *****************************************************************************/
 #include <unistd.h>
 #include <math.h>
+#include <string.h>
 #include "convert_lpgs_to_espa.h"
 
 /******************************************************************************
@@ -54,6 +55,7 @@ int read_lpgs_mtl
     char errmsg[STR_SIZE];    /* error message */
     char category[STR_SIZE][MAX_LPGS_BANDS]; /* band category - qa, image */
     char band_num[STR_SIZE][MAX_LPGS_BANDS]; /* band number for band name */
+    char source_dir[STR_SIZE] = ""; /* directory location of source bands */
     int i;                    /* looping variable */
     int count;                /* number of chars copied in snprintf */
     int band_count = 0;       /* count of the bands processed so we don't have
@@ -90,7 +92,7 @@ int read_lpgs_mtl
                                         calculations */
     float band_bias[MAX_LPGS_BANDS]; /* bias values for band radiance
                                         calculations */
-    float refl_gain[MAX_LPGS_BANDS]; /* gain values for TOA reflectance 
+    float refl_gain[MAX_LPGS_BANDS]; /* gain values for TOA reflectance
                                         calculations */
     float refl_bias[MAX_LPGS_BANDS]; /* bias values for TOA reflectance
                                         calculations */
@@ -104,6 +106,14 @@ int read_lpgs_mtl
     char *seperator = "=\" \t";            /* separator string */
     float fnum;                            /* temporary variable for floating
                                               point numbers */
+
+    /* Identify the source data directory */
+    if (strchr(mtl_file, '/') != NULL)
+    {
+        strncpy(source_dir, mtl_file, sizeof(source_dir));
+        tokenptr = strrchr(source_dir, '/');
+        *tokenptr = '\0';
+    }
 
     /* Open the metadata MTL file with read privelages */
     mtl_fptr = fopen (mtl_file, "r");
@@ -127,7 +137,7 @@ int read_lpgs_mtl
         /* Get string token */
         tokenptr = strtok (buffer, seperator);
         label = tokenptr;
- 
+
         if (tokenptr != NULL)
         {
             tokenptr = strtok (NULL, seperator);
@@ -1009,10 +1019,11 @@ int read_lpgs_mtl
         return (ERROR);
     }
 
+    /* Cut off the band specification */
     cptr = strrchr (product_id, '_');
     if (cptr == NULL)
     {
-        sprintf (errmsg, "Unsuspected format for the filename.  Expected "
+        sprintf (errmsg, "Unsupported format for the filename.  Expected "
             "{product_id}_Bx.* however no '_' was found in the filename: %s.",
             product_id);
         error_handler (true, FUNC_NAME, errmsg);
@@ -1020,13 +1031,27 @@ int read_lpgs_mtl
     }
     *cptr = '\0';
 
+    count = snprintf (metadata->global.product_id,
+        sizeof (metadata->global.product_id), "%s", product_id);
+    if (count < 0 || count >= sizeof (metadata->global.product_id))
+    {
+        sprintf (errmsg, "Overflow of xml_metadata.global.product_id string");
+        error_handler (true, FUNC_NAME, errmsg);
+        return (ERROR);
+    }
+
     /* Fill in the band-related metadata for each of the bands */
     *nlpgs_bands = metadata->nbands;
     for (i = 0; i < metadata->nbands; i++)
     {
         /* Handle the general metadata for each band */
-        count = snprintf (lpgs_bands[i], sizeof (lpgs_bands[i]), "%s",
-            band_fname[i]);
+        if (strcmp(source_dir, "") == 0)
+            count = snprintf (lpgs_bands[i], sizeof (lpgs_bands[i]), "%s",
+                band_fname[i]);
+        else
+            count = snprintf (lpgs_bands[i], sizeof (lpgs_bands[i]), "%s/%s",
+                source_dir, band_fname[i]);
+
         if (count < 0 || count >= sizeof (lpgs_bands[i]))
         {
             sprintf (errmsg, "Overflow of lpgs_bands[i] string");
@@ -1293,7 +1318,7 @@ int read_lpgs_mtl
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
-    
+
     /* Compute the geographic bounds using the reflectance band coordinates */
     /* For ascending scenes and scenes in the polar regions, the scenes are
        flipped upside down.  The bounding coords will be correct in North
@@ -1558,12 +1583,10 @@ int convert_lpgs_to_espa
 {
     char FUNC_NAME[] = "convert_lpgs_to_espa";  /* function name */
     char errmsg[STR_SIZE];   /* error message */
-    char *cptr = NULL;       /* pointer to _MTL.txt in the MTL filename */
     Espa_internal_meta_t xml_metadata;  /* XML metadata structure to be
                                 populated by reading the MTL metadata file */
     int i;                   /* looping variable */
     int nlpgs_bands;         /* number of bands in the LPGS product */
-    int count;               /* number of chars copied in snprintf */
     char lpgs_bands[MAX_LPGS_BANDS][STR_SIZE];  /* array containing the file
                                 names of the LPGS bands */
 
@@ -1579,21 +1602,6 @@ int convert_lpgs_to_espa
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
-
-    /* Add the product ID which is pulled from the MTL filename
-       ({product_id}_MTL.txt) */
-    count = snprintf (xml_metadata.global.product_id,
-        sizeof (xml_metadata.global.product_id), "%s", lpgs_mtl_file);
-    if (count < 0 || count >= sizeof (xml_metadata.global.product_id))
-    {
-        sprintf (errmsg, "Overflow of xml_metadata.global.product_id string");
-        error_handler (true, FUNC_NAME, errmsg);
-        return (ERROR);
-    }
-
-    /* Strip off _MTL.txt filename extension to get the actual product name */
-    cptr = strrchr (xml_metadata.global.product_id, '_');
-    *cptr = '\0';
 
     /* Write the metadata from our internal metadata structure to the output
        XML filename */

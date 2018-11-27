@@ -1,6 +1,6 @@
 /*****************************************************************************
 FILE: convert_espa_to_gtif
-  
+
 PURPOSE: Contains functions for converting the ESPA raw binary file format
 to GeoTIFF.
 
@@ -112,7 +112,7 @@ short get_args
                 /* If this option set a flag, do nothing else now. */
                 if (long_options[option_index].flag != 0)
                     break;
-     
+
             case 'h':  /* help */
                 usage ();
                 return (ERROR);
@@ -121,11 +121,11 @@ short get_args
             case 'i':  /* XML infile */
                 *xml_infile = strdup (optarg);
                 break;
-     
+
             case 'o':  /* GeoTIFF base outfile */
                 *gtif_outfile = strdup (optarg);
                 break;
-     
+
             case '?':
             default:
                 sprintf (errmsg, "Unknown option %s", argv[optind-1]);

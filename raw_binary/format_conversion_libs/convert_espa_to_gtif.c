@@ -1,6 +1,6 @@
 /*****************************************************************************
 FILE: convert_espa_to_gtif.c
-  
+
 PURPOSE: Contains functions for creating the GeoTIFF products for each of
 the bands in the XML file.
 
@@ -47,10 +47,12 @@ int convert_espa_to_gtif
     char FUNC_NAME[] = "convert_espa_to_gtif";  /* function name */
     char errmsg[STR_SIZE];      /* error message */
     char gdal_cmd[STR_SIZE];    /* command string for GDAL call */
-    char gtif_band[STR_SIZE];   /* name of the GeoTIFF file for this band */
+    char espa_band[STR_SIZE];   /* name of the input raw binary for this band*/
+    char gtif_band[STR_SIZE];   /* name of the output GeoTIFF for this band */
     char hdr_file[STR_SIZE];    /* name of the header file for this band */
     char xml_file[STR_SIZE];    /* new XML file for the GeoTIFF product */
     char tmpfile[STR_SIZE];     /* filename of file.tif.aux.xml */
+    char source_dir[STR_SIZE] = ""; /* directory location of source bands */
     char *cptr = NULL;          /* pointer to empty space in the band name */
     int i;                      /* looping variable for each band */
     int count;                  /* number of chars copied in snprintf */
@@ -74,6 +76,14 @@ int convert_espa_to_gtif
         return (ERROR);
     }
 
+    /* Determine if the files are being read from a location other than cwd */
+    if (strchr(espa_xml_file, '/') != NULL)
+    {
+        strncpy(source_dir, espa_xml_file, sizeof(source_dir));
+        cptr = strrchr(source_dir, '/');
+        *cptr = '\0';
+    }
+
     /* Loop through the bands in the XML file and convert them to GeoTIFF.
        The filenames will have the GeoTIFF base name followed by _ and the
        band name of each band in the XML file.  Blank spaced in the band name
@@ -85,7 +95,21 @@ int convert_espa_to_gtif
             gtif_file, xml_metadata.band[i].name);
         if (count < 0 || count >= sizeof (gtif_band))
         {
-            sprintf (errmsg, "Overflow of gtif_file string");
+            sprintf (errmsg, "Overflow of gtif_band string");
+            error_handler (true, FUNC_NAME, errmsg);
+            return (ERROR);
+        }
+
+        /* Determine the input GeoTIFF band name and location */
+        if (strcmp(source_dir, "") == 0)
+            count = snprintf (espa_band, sizeof(espa_band), "%s",
+                xml_metadata.band[i].file_name);
+        else
+            count = snprintf (espa_band, sizeof(espa_band), "%s/%s",
+                source_dir, xml_metadata.band[i].file_name);
+        if (count < 0 || count >= sizeof (espa_band))
+        {
+            sprintf (errmsg, "Overflow of espa_band string");
             error_handler (true, FUNC_NAME, errmsg);
             return (ERROR);
         }
@@ -96,8 +120,7 @@ int convert_espa_to_gtif
             *cptr = '_';
 
         /* Convert the files */
-        printf ("Converting %s to %s\n", xml_metadata.band[i].file_name,
-            gtif_band);
+        printf ("Converting %s to %s\n", espa_band, gtif_band);
 
         /* Check if the fill value is defined */
         if ((int) xml_metadata.band[i].fill_value == (int) ESPA_INT_META_FILL)
@@ -105,15 +128,14 @@ int convert_espa_to_gtif
             /* Fill value is not defined so don't write the nodata tag */
             count = snprintf (gdal_cmd, sizeof (gdal_cmd),
                 "gdal_translate -of Gtiff -co \"TFW=YES\" -q %s %s",
-                xml_metadata.band[i].file_name, gtif_band);
+                espa_band, gtif_band);
         }
         else
         {
             /* Fill value is defined so use the nodata tag */
             count = snprintf (gdal_cmd, sizeof (gdal_cmd),
              "gdal_translate -of Gtiff -a_nodata %ld -co \"TFW=YES\" -q %s %s",
-                xml_metadata.band[i].fill_value, xml_metadata.band[i].file_name,
-                gtif_band);
+                xml_metadata.band[i].fill_value, espa_band, gtif_band);
         }
         if (count < 0 || count >= sizeof (gdal_cmd))
         {
@@ -132,7 +154,8 @@ int convert_espa_to_gtif
         /* Remove the {gtif_name}.tif.aux.xml file since it's not needed and
            clutters the results.  Don't worry about testing the unlink
            results.  If it doesn't unlink it's not fatal. */
-        count = snprintf (tmpfile, sizeof (tmpfile), "%s.aux.xml", gtif_band);
+        count = snprintf (tmpfile, sizeof (tmpfile), "%s.aux.xml",
+            gtif_band);
         if (count < 0 || count >= sizeof (tmpfile))
         {
             sprintf (errmsg, "Overflow of tmpfile string");
@@ -145,18 +168,16 @@ int convert_espa_to_gtif
         if (del_src)
         {
             /* .img file */
-            printf ("  Removing %s\n", xml_metadata.band[i].file_name);
-            if (unlink (xml_metadata.band[i].file_name) != 0)
+            printf ("  Removing %s\n", espa_band);
+            if (unlink (espa_band) != 0)
             {
-                sprintf (errmsg, "Deleting source file: %s",
-                    xml_metadata.band[i].file_name);
+                sprintf (errmsg, "Deleting source file: %s", espa_band);
                 error_handler (true, FUNC_NAME, errmsg);
                 return (ERROR);
             }
 
             /* .hdr file */
-            count = snprintf (hdr_file, sizeof (hdr_file), "%s",
-                xml_metadata.band[i].file_name);
+            count = snprintf (hdr_file, sizeof (hdr_file), "%s", espa_band);
             if (count < 0 || count >= sizeof (hdr_file))
             {
                 sprintf (errmsg, "Overflow of hdr_file string");
