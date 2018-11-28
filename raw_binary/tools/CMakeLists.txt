@@ -9,7 +9,6 @@ else ()
     include_directories(${GCTP2_INCLUDES})
 endif ()
 include_directories(${GCTP3_INCLUDES})
-include_directories(${IAS_INCLUDES})
 
 add_executable(convert_lpgs_to_espa convert_lpgs_to_espa.c)
 target_link_libraries(convert_lpgs_to_espa
@@ -47,12 +46,16 @@ add_executable(create_angle_bands create_angle_bands.c)
 target_link_libraries(create_angle_bands
                       espa_band_angles espa_raw_binary espa_common
                       ${IAS_LIBS} ${XML_LIBS} ${ODL_LIBS} m)
+target_include_directories(create_angle_bands
+                           PRIVATE ${IAS_INCLUDES})
 
 add_executable(create_land_water_mask create_land_water_mask.c)
 target_link_libraries(create_land_water_mask
                       espa_land_water_mask espa_raw_binary
                       espa_common
                       ${IAS_LIBS} ${XML_LIBS} ${GCTP3_LIBS})
+target_include_directories(create_land_water_mask
+                           PRIVATE ${IAS_INCLUDES})
 
 add_executable(convert_espa_to_bip convert_espa_to_bip.c)
 target_link_libraries(convert_espa_to_bip
@@ -78,11 +81,15 @@ add_executable(create_landsat_angle_bands create_landsat_angle_bands.c)
 target_link_libraries(create_landsat_angle_bands
                       espa_band_angles espa_raw_binary espa_common
                       ${IAS_LIBS} ${ODL_LIBS} ${XML_LIBS} m)
+target_include_directories(create_landsat_angle_bands
+                           PRIVATE ${IAS_INCLUDES})
 
 add_executable(create_l8_angle_bands create_l8_angle_bands.c)
 target_link_libraries(create_l8_angle_bands
                       espa_band_angles espa_raw_binary espa_common
                       ${IAS_LIBS} ${ODL_LIBS} ${XML_LIBS} m)
+target_include_directories(create_l8_angle_bands
+                           PRIVATE ${IAS_INCLUDES})
 
 set (ALL_TARGETS convert_lpgs_to_espa convert_espa_to_hdf convert_espa_to_gtif
                  espa_band_subset espa_product_subset convert_modis_to_espa
