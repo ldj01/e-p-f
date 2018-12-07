@@ -6,6 +6,13 @@
 # RETURNS:  0 if successful, 1 on an error condition
 #***********************************************************************/
 
+# Get the location of the binary being run
+if ($#argv != 1) then
+  echo "Usage: $0 bindir"
+  exit 1
+endif
+set bindir = $1
+
 # Ensure the test environment is set
 if ( ! $?IAS_UNIT_TEST_DATA_DIR ) then
     echo "IAS_UNIT_TEST_DATA_DIR isn't set"
@@ -18,14 +25,14 @@ set tests = "01 02 03 04"
 
 foreach scene ($l7 $l8)
     if ($scene =~ LE07*) set exclude = 5
-    if ($scene =~ LC08*) set exclude = 5
+    if ($scene =~ LC08*) set exclude = 6
 
     foreach test ($tests)
 
         echo "Running test $test for ${scene}"
 
         # Link the test input product files
-        ln -s $IAS_UNIT_TEST_DATA_DIR/espa-product-formatter/l*/${scene}* .
+        ln -sf $IAS_UNIT_TEST_DATA_DIR/espa-product-formatter/l*/${scene}* .
 
         if ("$test" == "01") set args=""
         if ("$test" == "02") set args="--sr_st_only"
@@ -38,8 +45,8 @@ foreach scene ($l7 $l8)
         endif
 
         # Run the converter on the entire product
-        echo "../convert_lpgs_to_espa --mtl=${scene}_MTL.txt"
-        ../convert_lpgs_to_espa --mtl=${scene}_MTL.txt $args
+        echo "$bindir/convert_lpgs_to_espa --mtl=${scene}_MTL.txt"
+        $bindir/convert_lpgs_to_espa --mtl=${scene}_MTL.txt $args
         if ($status != 0) then
             echo "Error running convert_lpgs_to_espa"
             exit 1
@@ -47,15 +54,15 @@ foreach scene ($l7 $l8)
 
         # Compare the resulting XML to expected
         echo "Comparing ${scene}.XML to expected output"
-        diff ${scene}.xml $IAS_UNIT_TEST_DATA_DIR/espa-product-formatter/convert_lpgs_to_espa/${scene}.xml.$test
+        set ut="espa-product-formatter/convert_lpgs_to_espa"
+        diff ${scene}.xml $IAS_UNIT_TEST_DATA_DIR/$ut/${scene}.xml.$test
         if ($status != 0) then
             echo "Error in ${scene}.xml (compare to "
-            echo -n "$IAS_UNIT_TEST_DATA_DIR/espa-product-formatter/"
-            echo "convert_lpgs_to_espa/${scene}.xml.$test)"
+            echo -n "$IAS_UNIT_TEST_DATA_DIR/$ut/${scene}.xml.$test)"
             exit 1
         endif
 
-        # Make sure there are the correct number of output and 
+        # Make sure there are the correct number of output and
         # remaining input files
         echo "Looking for $nexpected output images"
         set ninput = `sh -c "ls ${scene}*TIF 2>>/dev/null" |wc -l`
@@ -63,7 +70,8 @@ foreach scene ($l7 $l8)
         set nhdr = `sh -c "ls ${scene}*hdr 2>>/dev/null" |wc -l`
 
         if ("$nexpected" != "$nimg") then
-            echo "Unexpected number of output image files ($nimg, expected $nexpected)"
+            echo -n "Unexpected number of output image files ($nimg, "
+            echo "expected $nexpected)"
             exit 1
         endif
         if ("$nimg" != "$nhdr") then

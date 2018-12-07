@@ -1,6 +1,6 @@
 /*****************************************************************************
 FILE: convert_lpgs_to_espa.c
-  
+
 PURPOSE: Contains functions for reading LPGS input GeoTIFF products and
 writing to ESPA raw binary format.
 
@@ -18,6 +18,7 @@ NOTES:
 #include <unistd.h>
 #include <math.h>
 #include <string.h>
+#include <stdio.h>
 #include "convert_lpgs_to_espa.h"
 
 /******************************************************************************
@@ -91,7 +92,7 @@ int read_lpgs_mtl
                                         calculations */
     float band_bias[MAX_LPGS_BANDS]; /* bias values for band radiance
                                         calculations */
-    float refl_gain[MAX_LPGS_BANDS]; /* gain values for TOA reflectance 
+    float refl_gain[MAX_LPGS_BANDS]; /* gain values for TOA reflectance
                                         calculations */
     float refl_bias[MAX_LPGS_BANDS]; /* bias values for TOA reflectance
                                         calculations */
@@ -106,7 +107,7 @@ int read_lpgs_mtl
     float fnum;                            /* temporary variable for floating
                                               point numbers */
 
-    /* Open the metadata MTL file with read privelages */
+    /* Open the metadata MTL file with read privileges */
     mtl_fptr = fopen (mtl_file, "r");
     if (mtl_fptr == NULL)
     {
@@ -128,7 +129,7 @@ int read_lpgs_mtl
         /* Get string token */
         tokenptr = strtok (buffer, seperator);
         label = tokenptr;
- 
+
         if (tokenptr != NULL)
         {
             tokenptr = strtok (NULL, seperator);
@@ -682,7 +683,7 @@ int read_lpgs_mtl
                 band_count++;  /* increment the band count */
             }
 
-            /* sensor aziumth */
+            /* sensor azimuth */
             else if (!strcmp (label, "FILE_NAME_SEA_BAND_4"))
             {
                 count = snprintf (band_fname[band_count],
@@ -1406,7 +1407,7 @@ int read_lpgs_mtl
         }
 
         /* If this is the Collection 2 Pixel QA band, then overwrite some
-         * things */
+           things */
         else if (!strcmp (band_num[i], "bqa_pixel"))
         {
             count = snprintf (bmeta[i].data_units, sizeof (bmeta[i].data_units),
@@ -1433,17 +1434,6 @@ int read_lpgs_mtl
 
             strcpy (bmeta[i].bitmap_description[0],
                 "Data Fill Flag (0 = valid data, 1 = invalid data)");
-            if (!strncmp (gmeta->instrument, "OLI", 3))
-            {  /* OLI */
-                strcpy (bmeta[i].bitmap_description[1],
-                    "Terrain Occlusion (0 = not terrain occluded, "
-                    "1 = terrain occluded)");
-            }
-            else
-            {  /* TM/ETM+ */
-                strcpy (bmeta[i].bitmap_description[1], "Dropped Pixel "
-                    "(0 = not a dropped pixel , 1 = dropped pixel)");
-            }
             strcpy (bmeta[i].bitmap_description[1], "Dilated Cloud");
             strcpy (bmeta[i].bitmap_description[2], "Cirrus");
             strcpy (bmeta[i].bitmap_description[3], "Cloud");
@@ -1470,7 +1460,7 @@ int read_lpgs_mtl
         }
 
         /* If this is the Collection 2 Rad Sat QA band, then overwrite some
-         * things */
+           things */
         else if (!strcmp (band_num[i], "bqa_radsat"))
         {
             count = snprintf (bmeta[i].data_units, sizeof (bmeta[i].data_units),
@@ -1530,8 +1520,9 @@ int read_lpgs_mtl
             bmeta[i].data_type = ESPA_INT16;
             bmeta[i].scale_factor = 0.01;
             bmeta[i].add_offset = 0.00;
-            /* Use a realistic range for aziumuth / zenith (-180 - 180) */
-            bmeta[i].valid_range[0] = -180.0 / bmeta[i].scale_factor
+            /* Use a realistic range for azimuth / zenith */
+            float min_angle = (strstr (band_num[i], "zenith")) ? 0 : -180;
+            bmeta[i].valid_range[0] = min_angle / bmeta[i].scale_factor
                 + bmeta[i].add_offset;
             bmeta[i].valid_range[1] = 180.0 / bmeta[i].scale_factor
                 + bmeta[i].add_offset;
@@ -1570,7 +1561,7 @@ int read_lpgs_mtl
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
-    
+
     /* Compute the geographic bounds using the reflectance band coordinates */
     /* For ascending scenes and scenes in the polar regions, the scenes are
        flipped upside down.  The bounding coords will be correct in North
@@ -1609,7 +1600,7 @@ Type = int
 Value           Description
 -----           -----------
 ERROR           Error converting the GeoTIFF file
-SUCCESS         Successfully converterd GeoTIFF to raw binary
+SUCCESS         Successfully converted GeoTIFF to raw binary
 
 NOTES:
 1. TIFF read scanline only supports reading a single line at a time.  We will
@@ -1846,7 +1837,7 @@ int convert_lpgs_to_espa
     char lpgs_bands[MAX_LPGS_BANDS][STR_SIZE];  /* array containing the file
                                 names of the LPGS bands */
     char exclude_bands[][STR_SIZE] =  /* bands to exclude, not used in SR/ST */
-        {"b62", "b8", "b9",
+        {"b62", "b8", "b9", "b11",
          "sensor_azimuth_band4", "sensor_zenith_band4", "solar_azimuth_band4"};
     int  nexclude = sizeof(exclude_bands)/STR_SIZE;
 
@@ -1879,16 +1870,16 @@ int convert_lpgs_to_espa
     cptr = strrchr (xml_metadata.global.product_id, '_');
     *cptr = '\0';
 
-    /* if requested, remove unneeded bands */
-    /* the lpgs_bands list is kept intact (using the i index), while the
-     * bands in xml_metadata are pared down to only the bands to be kept (using
-     * the x index) */
+    /* If requested, remove unneeded bands */
+    /* The lpgs_bands list is kept intact (using the i index), while the
+       bands in xml_metadata are pared down to only the bands to be kept (using
+       the x index) */
     if (sr_st_only)
     {
         for (i = 0, x = 0; i < nlpgs_bands; i++, x++)
         {
             int found_exclude;
-            for (found_exclude=0, j=0; j<nexclude; j++)
+            for (found_exclude = 0, j = 0; j < nexclude; j++)
             {
                 if (!strcmp(exclude_bands[j], xml_metadata.band[x].name))
                 {
@@ -1898,8 +1889,8 @@ int convert_lpgs_to_espa
             }
 
             /* If this band is in the exclude list, remove from the XML list
-             * by shifting the rest of the array and decrementing the band
-             * count */
+               by shifting the rest of the array and decrementing the band
+               count */
             if (found_exclude)
             {
                 if (i < (nlpgs_bands-1))
@@ -1928,7 +1919,7 @@ int convert_lpgs_to_espa
     }
 
     /* Convert each of the LPGS GeoTIFF files to raw binary */
-    for (i = 0, x=0; i < nlpgs_bands; i++)
+    for (i = 0, x = 0; i < nlpgs_bands; i++)
     {
         if (convert_lpgs_bands[i])
         {

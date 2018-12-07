@@ -1,6 +1,6 @@
 /*****************************************************************************
 FILE: convert_lpgs_to_espa
-  
+
 PURPOSE: Contains functions for converting the LPGS products to the ESPA
 internal raw binary file format.
 
@@ -42,8 +42,8 @@ void usage ()
     printf ("    --del_src_files: if specified the source GeoTIFF files will "
             "be removed.  The _MTL.txt file will remain along with the "
             "gap directory for ETM+ products.\n");
-    printf ("    --sr_st_only: if specified only the bands required for Surface"
-            " Reflectance and Surface Temperature processing are converted;"
+    printf ("    --sr_st_only: if specified only the bands required for surface"
+            " reflectance and surface temperature processing are converted;"
             " other bands are ignored.");
     printf ("\nExample: convert_lpgs_to_espa "
             "--mtl=LE07_L1TP_022033_20140228_20161028_01_T1_MTL.txt\n");
@@ -113,7 +113,7 @@ short get_args
                 /* If this option set a flag, do nothing else now. */
                 if (long_options[option_index].flag != 0)
                     break;
-     
+
             case 'h':  /* help */
                 usage ();
                 return (ERROR);
@@ -122,7 +122,7 @@ short get_args
             case 'i':  /* LPGS MTL infile */
                 *mtl_infile = strdup (optarg);
                 break;
-     
+
             case '?':
             default:
                 sprintf (errmsg, "Unknown option %s", argv[optind-1]);
@@ -145,8 +145,13 @@ short get_args
     /* Generate the XML filename from the MTL filename.  Find the _MTL.txt and
        change that to .xml. */
     *xml_outfile = strdup (*mtl_infile);
+    /* Ensure the new filename is long enough */
+    *xml_outfile = realloc(*xml_outfile, strlen(*xml_outfile)+4);
     cptr = strrchr (*xml_outfile, '_');
-    *cptr = '\0';
+    if (cptr == NULL)
+        cptr = strstr (*xml_outfile, ".txt");
+    if (cptr != NULL)
+        *cptr = '\0';
     sprintf (*xml_outfile, "%s.xml", *xml_outfile);
     if (*xml_outfile == NULL)
     {
@@ -155,7 +160,7 @@ short get_args
         return (ERROR);
     }
 
-    /* Check optiona flags */
+    /* Check option flags */
     if (del_flag)
         *del_src = true;
     if (sr_st_only_flag)
@@ -195,7 +200,7 @@ int main (int argc, char** argv)
     }
 
     /* Convert the LPGS MTL and data to ESPA raw binary and XML */
-    if (convert_lpgs_to_espa (mtl_infile, xml_outfile, del_src, sr_st_only) 
+    if (convert_lpgs_to_espa (mtl_infile, xml_outfile, del_src, sr_st_only)
         != SUCCESS)
     {  /* Error messages already written */
         exit (EXIT_FAILURE);

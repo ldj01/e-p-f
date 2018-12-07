@@ -6,6 +6,7 @@ project(espa-product-formatter)
 include(package_version.cmake)
 
 include(FindPkgConfig)
+include(CTest)
 
 if (NOT XML_INCLUDES)
     find_package(LibXml2)

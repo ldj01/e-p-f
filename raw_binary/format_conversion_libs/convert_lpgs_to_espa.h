@@ -1,6 +1,6 @@
 /*****************************************************************************
 FILE: convert_lpgs_to_espa.h
-  
+
 PURPOSE: Contains defines and prototypes to read the LPGS MTL file, create
 the XML metadata file, and convert from GeoTIFF to raw binary file format.
 
@@ -29,7 +29,7 @@ NOTES:
 
 /* Defines */
 /* Maximum number of LPGS bands in a file; OLI/TIRS products have the most
-   bands (11 image bands plus 2 quality bands and 4 angle bands); 
+   bands (11 image bands plus 2 quality bands and 4 angle bands);
    TM has 12 bands; ETM+ has 14 bands */
 #define MAX_LPGS_BANDS 17
 
