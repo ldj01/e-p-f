@@ -14,8 +14,8 @@ endif
 set bindir = $1
 
 # Ensure the test environment is set
-if ( ! $?IAS_UNIT_TEST_DATA_DIR ) then
-    echo "IAS_UNIT_TEST_DATA_DIR isn't set"
+if ( ! $?ESPA_UNIT_TEST_DATA_DIR ) then
+    echo "ESPA_UNIT_TEST_DATA_DIR isn't set"
     exit 1
 endif
 
@@ -32,7 +32,7 @@ foreach scene ($l7 $l8)
         echo "Running test $test for ${scene}"
 
         # Link the test input product files
-        ln -sf $IAS_UNIT_TEST_DATA_DIR/espa-product-formatter/l*/${scene}* .
+        ln -sf $ESPA_UNIT_TEST_DATA_DIR/espa-product-formatter/l*/${scene}* .
 
         if ("$test" == "01") set args=""
         if ("$test" == "02") set args="--sr_st_only"
@@ -55,10 +55,10 @@ foreach scene ($l7 $l8)
         # Compare the resulting XML to expected
         echo "Comparing ${scene}.XML to expected output"
         set ut="espa-product-formatter/convert_lpgs_to_espa"
-        diff ${scene}.xml $IAS_UNIT_TEST_DATA_DIR/$ut/${scene}.xml.$test
+        diff ${scene}.xml $ESPA_UNIT_TEST_DATA_DIR/$ut/${scene}.xml.$test
         if ($status != 0) then
             echo "Error in ${scene}.xml (compare to "
-            echo -n "$IAS_UNIT_TEST_DATA_DIR/$ut/${scene}.xml.$test)"
+            echo -n "$ESPA_UNIT_TEST_DATA_DIR/$ut/${scene}.xml.$test)"
             exit 1
         endif
 

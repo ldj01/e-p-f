@@ -684,7 +684,7 @@ int read_lpgs_mtl
             }
 
             /* sensor azimuth */
-            else if (!strcmp (label, "FILE_NAME_SEA_BAND_4"))
+            else if (!strcmp (label, "FILE_NAME_ANGLE_SENSOR_AZIMUTH_BAND_4"))
             {
                 count = snprintf (band_fname[band_count],
                     sizeof (band_fname[band_count]), "%s", tokenptr);
@@ -701,7 +701,7 @@ int read_lpgs_mtl
                 band_count++;  /* increment the band count */
             }
             /* sensor zenith */
-            else if (!strcmp (label, "FILE_NAME_SEZ_BAND_4"))
+            else if (!strcmp (label, "FILE_NAME_ANGLE_SENSOR_ZENITH_BAND_4"))
             {
                 count = snprintf (band_fname[band_count],
                     sizeof (band_fname[band_count]), "%s", tokenptr);
@@ -718,7 +718,7 @@ int read_lpgs_mtl
                 band_count++;  /* increment the band count */
             }
             /* solar azimuth angle */
-            else if (!strcmp (label, "FILE_NAME_SAA_BAND_4"))
+            else if (!strcmp (label, "FILE_NAME_ANGLE_SOLAR_AZIMUTH_BAND_4"))
             {
                 count = snprintf (band_fname[band_count],
                     sizeof (band_fname[band_count]), "%s", tokenptr);
@@ -735,7 +735,7 @@ int read_lpgs_mtl
                 band_count++;  /* increment the band count */
             }
             /* solar zenith angle */
-            else if (!strcmp (label, "FILE_NAME_SZA_BAND_4"))
+            else if (!strcmp (label, "FILE_NAME_ANGLE_SOLAR_ZENITH_BAND_4"))
             {
                 count = snprintf (band_fname[band_count],
                     sizeof (band_fname[band_count]), "%s", tokenptr);
@@ -1520,7 +1520,7 @@ int read_lpgs_mtl
             bmeta[i].data_type = ESPA_INT16;
             bmeta[i].scale_factor = 0.01;
             bmeta[i].add_offset = 0.00;
-            /* Use a realistic range for azimuth / zenith */
+            /* Set the valid range for azimuth / zenith */
             float min_angle = (strstr (band_num[i], "zenith")) ? 0 : -180;
             bmeta[i].valid_range[0] = min_angle / bmeta[i].scale_factor
                 + bmeta[i].add_offset;
