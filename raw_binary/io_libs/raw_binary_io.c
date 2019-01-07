@@ -158,7 +158,7 @@ int read_raw_binary
     if (nvals != nlines * nsamps)
     {
         sprintf (errmsg, "Reading %d elements of %d bytes in size from the "
-            "raw binary file.", nlines * nsamps, size);
+            "raw binary file. Read: %d bytes", nlines * nsamps, size, nvals);
         error_handler (true, FUNC_NAME, errmsg);
         return ERROR;
     }
