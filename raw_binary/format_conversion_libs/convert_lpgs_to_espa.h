@@ -18,7 +18,6 @@ NOTES:
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "geotiffio.h"
 #include "xtiffio.h"
 #include "error_handler.h"
 #include "espa_metadata.h"

@@ -68,15 +68,14 @@ int convert_espa_to_raw_binary_bip
     int curr_opix;              /* index for current output pixel */
     int number_elements;        /* number of elements per line for all bands */
     void *file_buf = NULL;      /* pointer to correct input file buffer */
-    uint8 *tmp_buf_u8 = NULL;   /* buffer for uint8 QA data to be read */
-    uint8 *file_buf_u8 = NULL;  /* buffer for uint8 data to be read */
-    int16 *file_buf_i16 = NULL; /* buffer for int16 data to be read */
-    int16 *file_buf_u16 = NULL; /* buffer for uint16 data to be read */
+    unsigned char *tmp_buf_u8 = NULL; /* buffer for uint8 QA data to be read */
+    unsigned char *file_buf_u8 = NULL;/* buffer for uint8 data to be read */
+    short int *file_buf_i16 = NULL;   /* buffer for int16 data to be read */
+    unsigned short int *file_buf_u16 = NULL;/* uint16 buffer data to be read */
     void *ofile_buf = NULL;     /* pointer to correct output file buffer */
-    uint8 *ofile_buf_u8 = NULL; /* buffer for output uint8 data to be written */
-    int16 *ofile_buf_i16 = NULL;/* buffer for output int16 data to be written */
-    int16 *ofile_buf_u16 = NULL;/* buffer for output uint16 data to be
-                                   written */
+    unsigned char *ofile_buf_u8 = NULL; /* output uint8 buffer to write */
+    short int *ofile_buf_i16 = NULL;/* output int16 buffer to write */
+    unsigned short int *ofile_buf_u16 = NULL;/* output uint16 buffer to write */
     FILE **fp_rb = NULL;        /* array of file pointers for the input raw
                                    binary files */
     FILE *fp_bip = NULL;        /* file pointer for the BIP raw binary file */
@@ -194,13 +193,13 @@ int convert_espa_to_raw_binary_bip
     switch (bmeta[0].data_type)
     {
         case ESPA_UINT8:
-            nbytes = sizeof (uint8);
+            nbytes = sizeof (unsigned char);
             break;
         case ESPA_INT16:
-            nbytes = sizeof (int16);
+            nbytes = sizeof (short int);
             break;
         case ESPA_UINT16:
-            nbytes = sizeof (uint16);
+            nbytes = sizeof (unsigned short int);
             break;
         default:
             sprintf (errmsg, "Unsupported data type.  Currently only uint8, "
@@ -258,7 +257,7 @@ int convert_espa_to_raw_binary_bip
        input array */
     if (convert_qa)
     {
-        tmp_buf_u8 = calloc (bmeta[0].nsamps, sizeof (uint8));
+        tmp_buf_u8 = calloc (bmeta[0].nsamps, sizeof (unsigned char));
         if (tmp_buf_u8 == NULL)
         {
             sprintf (errmsg, "Allocating memory for a line of QA data "
@@ -288,7 +287,7 @@ int convert_espa_to_raw_binary_bip
                 /* Read the current line from the raw binary file into the
                    temporary UINT8 buffer */
                 if (read_raw_binary (fp_rb[i], 1, bmeta[0].nsamps,
-                    sizeof (uint8), tmp_buf_u8) != SUCCESS)
+                    sizeof (unsigned char), tmp_buf_u8) != SUCCESS)
                 {
                     sprintf (errmsg, "Reading QA data from the raw binary "
                         "file for line %d and band %d", l, i);
@@ -301,13 +300,16 @@ int convert_espa_to_raw_binary_bip
                 {
                     curr_pix = i * bmeta[0].nsamps;
                     for (s = 0; s < bmeta[0].nsamps; s++, curr_pix++)
-                        file_buf_i16[curr_pix] = (int16) tmp_buf_u8[s];
+                        file_buf_i16[curr_pix] = (short int) tmp_buf_u8[s];
                 }
                 else if (bmeta[0].data_type == ESPA_UINT16)
                 {
                     curr_pix = i * bmeta[0].nsamps;
                     for (s = 0; s < bmeta[0].nsamps; s++, curr_pix++)
-                        file_buf_u16[curr_pix] = (uint16) tmp_buf_u8[s];
+                    {
+                        file_buf_u16[curr_pix]
+                            = (unsigned short int) tmp_buf_u8[s];
+                    }
                 }
             }
             else
