@@ -30,6 +30,7 @@ target_link_libraries(convert_espa_to_hdf
 add_executable(convert_espa_to_gtif convert_espa_to_gtif.c)
 target_link_libraries(convert_espa_to_gtif
                       espa_format_conversion espa_raw_binary espa_common
+                      ${IAS_LIBS} ${GEOTIFF_LIBS} ${TIFF_LIBS} ${HDF5_LIBS}
                       ${XML_LIBS})
 
 add_executable(espa_band_subset espa_band_subset.c)
