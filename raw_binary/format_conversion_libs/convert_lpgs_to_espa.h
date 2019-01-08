@@ -1,6 +1,6 @@
 /*****************************************************************************
 FILE: convert_lpgs_to_espa.h
-  
+
 PURPOSE: Contains defines and prototypes to read the LPGS MTL file, create
 the XML metadata file, and convert from GeoTIFF to raw binary file format.
 
@@ -29,9 +29,9 @@ NOTES:
 
 /* Defines */
 /* Maximum number of LPGS bands in a file; OLI/TIRS products have the most
-   bands (11 image bands plus the quality band); TM has 7 bands; ETM+ has
-   9 bands */
-#define MAX_LPGS_BANDS 12
+   bands (11 image bands plus 2 quality bands and 4 angle bands);
+   TM has 12 bands; ETM+ has 14 bands */
+#define MAX_LPGS_BANDS 17
 
 /* Prototypes */
 int read_lpgs_mtl
@@ -56,8 +56,9 @@ int convert_lpgs_to_espa
 (
     char *lpgs_mtl_file,   /* I: input LPGS MTL metadata filename */
     char *espa_xml_file,   /* I: output ESPA XML metadata filename */
-    bool del_src           /* I: should the source .tif files be removed after
+    bool del_src,          /* I: should the source .tif files be removed after
                                  conversion? */
+    bool sr_st_only        /* I: only convert bands required for SR/ST */
 );
 
 #endif
