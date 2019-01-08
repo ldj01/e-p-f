@@ -26,6 +26,7 @@ NOTES:
 #define GCTP_GEO GEO
 #endif
 #include "convert_espa_to_hdf.h"
+#include "espa_hdf_eos.h"
 
 #define OUTPUT_PROVIDER ("DataProvider")
 #define OUTPUT_SAT ("Satellite")

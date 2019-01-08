@@ -1855,7 +1855,6 @@ int convert_lpgs_to_espa
                                 populated by reading the MTL metadata file */
     int i,j,x;               /* looping variables */
     int nlpgs_bands;         /* number of bands in the LPGS product */
-    int count;               /* number of chars copied in snprintf */
     int convert_lpgs_bands[MAX_LPGS_BANDS]; /* flag to convert each band */
     char lpgs_bands[MAX_LPGS_BANDS][STR_SIZE];  /* array containing the file
                                 names of the LPGS bands */
