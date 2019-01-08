@@ -3,12 +3,19 @@ include_directories(${NETCDF_INCLUDES})
 include_directories(${TIFF_INCLUDES})
 include_directories(${GEOTIFF_INCLUDES})
 include_directories(${HDF4_INCLUDES})
+include_directories(${SZIP_INCLUDES})
 if (USE_HDFEOS)
     include_directories(${HDFEOS_INCLUDES})
 else ()
     include_directories(${GCTP2_INCLUDES})
 endif ()
 include_directories(${GCTP3_INCLUDES})
+
+# Add link directories for shared libraries
+link_directories(${HDF4_LIBRARY_DIRS})
+link_directories(${HDF5_LIBRARY_DIRS})
+link_directories(${SZIP_LIBRARY_DIRS})
+link_directories(${NETCDF_LIBRARY_DIRS})
 
 add_executable(convert_lpgs_to_espa convert_lpgs_to_espa.c)
 target_link_libraries(convert_lpgs_to_espa
@@ -18,7 +25,7 @@ target_link_libraries(convert_lpgs_to_espa
 add_executable(convert_espa_to_hdf convert_espa_to_hdf.c)
 target_link_libraries(convert_espa_to_hdf
                       espa_format_conversion espa_raw_binary espa_common
-                      ${XML_LIBS} ${HDF4_LIBS})
+                      ${XML_LIBS} ${HDF4_LIBS} ${SZIP_LIBS})
 
 add_executable(convert_espa_to_gtif convert_espa_to_gtif.c)
 target_link_libraries(convert_espa_to_gtif
@@ -75,7 +82,8 @@ target_link_libraries(clip_band_misalignment
 add_executable(convert_espa_to_netcdf convert_espa_to_netcdf.c)
 target_link_libraries(convert_espa_to_netcdf
                       espa_format_conversion espa_raw_binary espa_common
-                      ${XML_LIBS} ${HDF4_LIBS} ${NETCDF_LIBS})
+                      ${XML_LIBS} ${HDF4_LIBS} ${NETCDF_LIBS} ${HDF5_LIBS}
+                      ${SZIP_LIBS} dl)
 
 add_executable(create_landsat_angle_bands create_landsat_angle_bands.c)
 target_link_libraries(create_landsat_angle_bands
