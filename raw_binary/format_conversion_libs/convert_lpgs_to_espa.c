@@ -1859,7 +1859,7 @@ int convert_lpgs_to_espa
     char lpgs_bands[MAX_LPGS_BANDS][STR_SIZE];  /* array containing the file
                                 names of the LPGS bands */
     char exclude_bands[][STR_SIZE] =  /* bands to exclude, not used in SR/ST */
-        {"b62", "b8", "b9", "b11",
+        {"b62", "b8", "b9",
          "sensor_azimuth_band4", "sensor_zenith_band4", "solar_azimuth_band4"};
     int  nexclude = sizeof(exclude_bands)/STR_SIZE;
 

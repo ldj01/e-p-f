@@ -25,7 +25,7 @@ set tests = "01 02 03 04"
 
 foreach scene ($l7 $l8)
     if ($scene =~ LE07*) set exclude = 5
-    if ($scene =~ LC08*) set exclude = 6
+    if ($scene =~ LC08*) set exclude = 5
 
     foreach test ($tests)
 
