@@ -159,8 +159,8 @@ typedef struct
     int nsamps;                  /* number of samples in the dataset */
     long fill_value;             /* use long to support long data types */
     int saturate_value;          /* saturation value (for Landsat) */
-    float scale_factor;          /* scaling factor */
-    float add_offset;            /* offset to be added */
+    double scale_factor;         /* scaling factor */
+    double add_offset;           /* offset to be added */
     enum Espa_resampling_type resample_method;
                                  /* resampling method for this band */
     char short_name[STR_SIZE];   /* short band name */
