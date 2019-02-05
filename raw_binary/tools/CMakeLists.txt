@@ -16,6 +16,7 @@ link_directories(${HDF4_LIBRARY_DIRS})
 link_directories(${HDF5_LIBRARY_DIRS})
 link_directories(${SZIP_LIBRARY_DIRS})
 link_directories(${NETCDF_LIBRARY_DIRS})
+link_directories(${TIFF_LIBRARY_DIRS})
 
 add_executable(convert_lpgs_to_espa convert_lpgs_to_espa.c)
 target_link_libraries(convert_lpgs_to_espa
