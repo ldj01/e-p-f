@@ -34,6 +34,7 @@ RETURNS: SUCCESS/ERROR
 static int convert_file_using_library
 (
     const Espa_internal_meta_t *xml_metadata, /* I: Source XML metadata */
+    char *espa_filename,                      /* I: Input ESPA filename */
     const char *geotiff_filename,             /* I: Output GeoTIFF filename */
     int band_index
 )
@@ -59,11 +60,11 @@ static int convert_file_using_library
     nlines = xml_metadata->band[band_index].nlines;
     nsamps = xml_metadata->band[band_index].nsamps;
 
-    fp_rb = open_raw_binary(xml_metadata->band[band_index].file_name, "rb");
+    fp_rb = open_raw_binary(espa_filename, "rb");
     if ( fp_rb == NULL)
     {
         sprintf(errmsg, "Error opening input raw binary file: %s",
-            xml_metadata->band[band_index].file_name);
+            espa_filename);
         error_handler(true, FUNC_NAME, errmsg);
         return (ERROR);
     }
@@ -441,8 +442,8 @@ int convert_espa_to_gtif
         {
             /* For WGS84, use the IAS library GeoTIFF IO library to convert
                the file */
-            if (convert_file_using_library(&xml_metadata, gtif_band, i)
-                    != SUCCESS)
+            if (convert_file_using_library(&xml_metadata, espa_band, gtif_band,
+                    i) != SUCCESS)
             {
                 sprintf(errmsg, "Converting espa source file %s to GeoTIFF %s",
                         espa_band, gtif_band);
