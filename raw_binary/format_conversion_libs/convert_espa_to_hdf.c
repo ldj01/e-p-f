@@ -25,6 +25,7 @@ NOTES:
 #include <proj.h>
 #define GCTP_GEO GEO
 #endif
+#include "espa_hdf_eos.h"
 #include "convert_espa_to_hdf.h"
 #include "espa_hdf_eos.h"
 
@@ -597,19 +598,24 @@ int create_hdf_metadata
     char *hdf_file,                     /* I: output HDF filename */
     Espa_internal_meta_t *xml_metadata, /* I: XML metadata structure */
     char source_dir[],                  /* I: Source directory of input data */
-    bool del_src                        /* I: should the source files be 
-                                              removed after conversion? */
+    bool del_src,                       /* I: should the source files be removed
+                                              after conversion? */
+    bool for_ias                        /* I: format the HDF file for IAS use 
+                                              (non-HDFEOS)*/
 )
 {
     char FUNC_NAME[] = "create_hdf_metadata";  /* function name */
     char errmsg[STR_SIZE];        /* error message */
     char bendian_file[STR_SIZE];  /* name of output big endian img file */
     char hdf_file_root[STR_SIZE]; /* root of output HDF filename */
+    char sds_name[H4_MAX_NC_NAME];/* SDS name */
+    char sds_name_root[H4_MAX_NC_NAME];/* SDS name root */
     char dim_name[2][STR_SIZE];   /* array of dimension names */
     char hdr_file[STR_SIZE];      /* ENVI header file */
     char input_file[STR_SIZE];    /* Path and filename of input file */
     char *cptr = NULL;            /* pointer to the file extension */
     int i;                        /* looping variable for each SDS */
+    int bnum;                     /* band number scanned from band name */
     int nbytes;                   /* number of bytes in the data type */
     int nlines;                   /* number of lines in the band */
     int nsamps;                   /* number of samples in the band */
@@ -644,6 +650,30 @@ int create_hdf_metadata
         sprintf (errmsg, "Creating the HDF file: %s", hdf_file);
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
+    }
+
+    if (for_ias)
+    {
+        /* Create the base SDS name from the HDF filename */
+        cptr = strrchr (hdf_file, '/');
+        if (cptr == NULL)
+            cptr = hdf_file;
+        else
+            cptr++;
+        count = snprintf (sds_name_root, sizeof (sds_name_root), "%s", cptr);
+        if (count < 0 || count >= sizeof (sds_name_root))
+        {
+            sprintf (errmsg, "Overflow of sds_name_root string");
+            error_handler (true, FUNC_NAME, errmsg);
+            return (ERROR);
+        }
+
+        /* Truncate "_HDF" or file extension by inserting a NULL character */
+        cptr = strstr (sds_name_root, "_HDF");
+        if (cptr == NULL)
+            cptr = strrchr (sds_name_root, '.');
+        if (cptr != NULL)
+            *cptr = '\0';
     }
 
     /* Loop through the bands in the XML file and set each band as an
@@ -761,8 +791,29 @@ int create_hdf_metadata
         }
 
         /* Select/create the SDS index for the current band */
-        sds_id = SDcreate (hdf_id, xml_metadata->band[i].name, data_type,
-            rank, dims);
+        if (for_ias)
+        {
+            if (sscanf(xml_metadata->band[i].name, "sr_band%d", &bnum) == 1)
+            {
+                snprintf(sds_name, sizeof(sds_name), "%s.B%d0",
+                    sds_name_root, bnum);
+            }
+            else if (strcmp(xml_metadata->band[i].name,
+                    "surface_temperature") == 0)
+            {
+                if (!strncmp (xml_metadata->global.instrument, "ETM", 3))
+                    sprintf(sds_name, "%s.B61", sds_name_root);
+                else
+                    sprintf(sds_name, "%s.B60", sds_name_root);
+            }
+            else
+                strcpy(sds_name, xml_metadata->band[i].name);
+        }
+        else
+            strcpy(sds_name, xml_metadata->band[i].name);
+
+        sds_id = SDcreate (hdf_id, sds_name, data_type, rank, dims);
+
         if (sds_id == HDF_ERROR)
         {
             sprintf (errmsg, "Creating SDS in the HDF file: %d.", i);
@@ -922,11 +973,15 @@ int create_hdf_metadata
     SDend (hdf_id);
 
     /* Write HDF-EOS attributes and metadata */
-    if (write_hdf_eos_attr (hdf_file, xml_metadata) != SUCCESS)
+    /* This doesn't apply to IAS HDF usage */
+    if (!for_ias)
     {
-        sprintf (errmsg, "Writing HDF-EOS attributes for this HDF file.");
-        error_handler (true, FUNC_NAME, errmsg);
-        return (ERROR);
+        if (write_hdf_eos_attr (hdf_file, xml_metadata) != SUCCESS)
+        {
+            sprintf (errmsg, "Writing HDF-EOS attributes for this HDF file.");
+            error_handler (true, FUNC_NAME, errmsg);
+            return (ERROR);
+        }
     }
 
     /* Successful conversion */
@@ -956,8 +1011,9 @@ int convert_espa_to_hdf
 (
     char *espa_xml_file,   /* I: input ESPA XML metadata filename */
     char *hdf_file,        /* I: output HDF filename */
-    bool del_src           /* I: should the source files be removed after
+    bool del_src,          /* I: should the source files be removed after
                                  conversion? */
+    bool for_ias           /* I: format the HDF file for IAS use (non-HDFEOS) */
 )
 {
     char FUNC_NAME[] = "convert_espa_to_hdf";  /* function name */
@@ -1002,7 +1058,7 @@ int convert_espa_to_hdf
     /* Create the HDF file for the HDF metadata from the XML metadata.  This
        also creates the big endian files for the HDF file. */
     if (create_hdf_metadata (hdf_file, &xml_metadata, source_dir,
-        del_src) != SUCCESS)
+        del_src, for_ias) != SUCCESS)
     {
         sprintf (errmsg, "Creating the HDF metadata file (%s) which links to "
             "the raw binary bands as external SDSs.", hdf_file);

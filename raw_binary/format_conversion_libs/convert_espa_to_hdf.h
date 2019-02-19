@@ -1,6 +1,6 @@
 /*****************************************************************************
 FILE: convert_espa_hdf.h
-  
+
 PURPOSE: Contains defines and prototypes to read the ESPA XML metadata file
 and imagery, and convert from raw binary to HDF file format.
 
@@ -52,16 +52,19 @@ int create_hdf_metadata
     char *hdf_file,                     /* I: output HDF filename */
     Espa_internal_meta_t *xml_metadata, /* I: XML metadata structure */
     char source_dir[],                  /* I: Source directory of input data */
-    bool del_src                        /* I: should the source files be 
+    bool del_src,                       /* I: should the source files be 
                                               removed after conversion? */
+    bool for_ias                        /* I: format the HDF file for IAS 
+                                              use (non-HDFEOS) */
 );
 
 int convert_espa_to_hdf
 (
     char *espa_xml_file,   /* I: input ESPA XML metadata filename */
     char *hdf_file,        /* I: output HDF filename */
-    bool del_src           /* I: should the source files be removed after
+    bool del_src,          /* I: should the source files be removed after
                                  conversion? */
+    bool for_ias           /* I: format the HDF file for IAS use (non-HDFEOS) */
 );
 
 #endif

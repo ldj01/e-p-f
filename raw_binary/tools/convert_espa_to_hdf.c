@@ -28,7 +28,7 @@ Type = None
 
 NOTES:
 ******************************************************************************/
-void usage ()
+static void usage ()
 {
     printf ("convert_espa_to_hdf converts the ESPA internal format (raw "
             "binary and associated XML metadata file) to HDF-EOS2 (HDF4).  "
@@ -38,7 +38,8 @@ void usage ()
     printf ("usage: convert_espa_to_hdf "
             "--xml=input_metadata_filename "
             "--hdf=output_hdf_filename "
-            "[--del_src_files]\n");
+            "[--del_src_files] "
+            "[--for_ias]\n");
 
     printf ("\nwhere the following parameters are required:\n");
     printf ("    -xml: name of the input XML metadata file which follows "
@@ -46,9 +47,12 @@ void usage ()
     printf ("    -hdf: filename of the output HDF file\n");
     printf ("    -del_src_files: if specified the source image and header "
             "files will be removed\n");
+    printf ("    -for_ias: if specified the HDF file will be formatted for IAS "
+            "use (non-HDFEOS)\n");
     printf ("\nExample: convert_espa_to_hdf "
             "--xml=LE07_L1TP_022033_20140228_20161028_01_T1.xml "
-            "--hdf=LE07_L1TP_022033_20140228_20161028_01_T1.hdf\n");
+            "--hdf=LE07_L1TP_022033_20140228_20161028_01_T1.hdf "
+            "--for_ias\n");
 }
 
 
@@ -71,13 +75,14 @@ NOTES:
      be character pointers set to NULL on input.  The caller is responsible
      for freeing the allocated memory upon successful return.
 ******************************************************************************/
-short get_args
+static short get_args
 (
     int argc,             /* I: number of cmd-line args */
     char *argv[],         /* I: string of cmd-line args */
     char **xml_infile,    /* O: address of input XML filename */
     char **hdf_outfile,   /* O: address of output HDF filename */
-    bool *del_src         /* O: should source files be removed? */
+    bool *del_src,        /* O: should source files be removed? */
+    bool *for_ias         /* O: format the HDF file for IAS */
 )
 {
     int c;                           /* current argument index */
@@ -85,9 +90,11 @@ short get_args
     char errmsg[STR_SIZE];           /* error message */
     char FUNC_NAME[] = "get_args";   /* function name */
     static int del_flag = 0;         /* flag for removing the source files */
+    static int ias_flag = 0;         /* flag to format the HDF file for IAS */
     static struct option long_options[] =
     {
         {"del_src_files", no_argument, &del_flag, 1},
+        {"for_ias", no_argument, &ias_flag, 1},
         {"xml", required_argument, 0, 'i'},
         {"hdf", required_argument, 0, 'o'},
         {"help", no_argument, 0, 'h'},
@@ -153,9 +160,11 @@ short get_args
         return (ERROR);
     }
 
-    /* Check the delete source files flag */
+    /* Set command-line flags */
     if (del_flag)
         *del_src = true;
+    if (ias_flag)
+        *for_ias = true;
 
     return (SUCCESS);
 }
@@ -183,15 +192,18 @@ int main (int argc, char** argv)
     char *xml_infile = NULL;     /* input XML filename */
     char *hdf_outfile = NULL;    /* output HDF filename */
     bool del_src = false;        /* should source files be removed? */
+    bool for_ias = false;        /* format the HDF file for IAS */
 
     /* Read the command-line arguments */
-    if (get_args (argc, argv, &xml_infile, &hdf_outfile, &del_src) != SUCCESS)
+    if (get_args (argc, argv, &xml_infile, &hdf_outfile, &del_src, &for_ias)
+        != SUCCESS)
     {   /* get_args already printed the error message */
         exit (EXIT_FAILURE);
     }
 
     /* Convert the internal ESPA raw binary product to HDF with external SDSs */
-    if (convert_espa_to_hdf (xml_infile, hdf_outfile, del_src) != SUCCESS)
+    if (convert_espa_to_hdf (xml_infile, hdf_outfile, del_src, for_ias)
+        != SUCCESS)
     {  /* Error messages already written */
         exit (EXIT_FAILURE);
     }
