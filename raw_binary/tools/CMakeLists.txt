@@ -101,17 +101,21 @@ target_link_libraries(create_l8_angle_bands
 target_include_directories(create_l8_angle_bands
                            PRIVATE ${IAS_INCLUDES})
 
-set (ALL_TARGETS convert_lpgs_to_espa convert_espa_to_hdf convert_espa_to_gtif
-                 espa_band_subset espa_product_subset convert_modis_to_espa
+set (ALL_TARGETS convert_lpgs_to_espa convert_espa_to_hdf convert_espa_to_gtif)
+
+set (ESPA_TARGETS espa_band_subset espa_product_subset convert_modis_to_espa
                  create_angle_bands create_land_water_mask convert_espa_to_bip
                  create_date_bands clip_band_misalignment
                  convert_espa_to_netcdf create_landsat_angle_bands
                  create_l8_angle_bands)
 if (NOT USE_HDFEOS)
-    list(REMOVE_ITEM ALL_TARGETS convert_modis_to_espa)
+    list(REMOVE_ITEM ESPA_TARGETS convert_modis_to_espa)
 endif ()
 
 install(TARGETS ${ALL_TARGETS} DESTINATION bin)
+
+install(TARGETS ${ESPA_TARGETS} DESTINATION bin COMPONENT espa-tools
+    EXCLUDE_FROM_ALL)
 
 
 # Tests

@@ -10,4 +10,6 @@ target_include_directories(espa_level1_libs PUBLIC . ../common ../io_libs
 
 install(TARGETS espa_level1_libs
         ARCHIVE DESTINATION lib
-        PUBLIC_HEADER DESTINATION include)
+        COMPONENT espa-tools EXCLUDE_FROM_ALL
+        PUBLIC_HEADER DESTINATION include
+        COMPONENT espa-tools EXCLUDE_FROM_ALL)

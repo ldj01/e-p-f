@@ -221,3 +221,9 @@ set (CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 add_subdirectory(raw_binary)
 add_subdirectory(py_modules)
 add_subdirectory(schema)
+
+# Install target for additional tools not required for Landsat Collection 2
+add_custom_target(espa-tools
+    COMMAND "${CMAKE_COMMAND}"
+            -DCMAKE_INSTALL_COMPONENT=espa-tools
+            -P "${CMAKE_BINARY_DIR}/cmake_install.cmake")
