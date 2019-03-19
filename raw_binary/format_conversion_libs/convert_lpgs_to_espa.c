@@ -1283,6 +1283,12 @@ int read_lpgs_mtl
             bmeta[i].fill_value = 0;
             strcpy (bmeta[i].short_name, "LO08");
         }
+        else if (!strcmp (gmeta->instrument, "TIRS"))
+        {
+            bmeta[i].data_type = ESPA_UINT16;
+            bmeta[i].fill_value = 0;
+            strcpy (bmeta[i].short_name, "LT08");
+        }
 
         /* Set up the band names - use lower case 'b' versus upper case 'B'
            to distinguish ESPA products from original Level-1 products. */
