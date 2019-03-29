@@ -171,7 +171,10 @@ int read_lpgs_mtl
             }
             else if (!strcmp (label, "SPACECRAFT_ID"))
             {
-                if (strcmp (tokenptr, "LANDSAT_8") == 0 ||
+                if (strcmp (tokenptr, "LANDSAT_9") == 0 ||
+                    strcmp (tokenptr, "Landsat9") == 0)
+                    strcpy (gmeta->satellite, "LANDSAT_9");
+                else if (strcmp (tokenptr, "LANDSAT_8") == 0 ||
                     strcmp (tokenptr, "Landsat8") == 0)
                     strcpy (gmeta->satellite, "LANDSAT_8");
                 else if (strcmp (tokenptr, "LANDSAT_7") == 0 ||
@@ -1065,6 +1068,50 @@ int read_lpgs_mtl
             break;
     }  /* end while fgets */
 
+    /* Ensure that the SENSOR_ID is valid for the SPACECRAFT_ID */
+    if (strcmp(gmeta->satellite, "LANDSAT_9") == 0
+        || strcmp(gmeta->satellite, "LANDSAT_8") == 0)
+    {
+        if (strcmp (gmeta->instrument, "OLI_TIRS") != 0
+            && strcmp (gmeta->instrument, "OLI") != 0
+            && strcmp (gmeta->instrument, "TIRS") != 0)
+        {
+            sprintf (errmsg, "Unsupported sensor type: %s",
+                gmeta->instrument);
+            error_handler (true, FUNC_NAME, errmsg);
+            return (ERROR);
+        }
+    }
+    else if (strcmp(gmeta->satellite, "LANDSAT_7") == 0)
+    {
+        if (strcmp (gmeta->instrument, "ETM") != 0)
+        {
+            sprintf (errmsg, "Unsupported sensor type: %s",
+                gmeta->instrument);
+            error_handler (true, FUNC_NAME, errmsg);
+            return (ERROR);
+        }
+    }
+    else if (strcmp(gmeta->satellite, "LANDSAT_5") == 0
+        || strcmp(gmeta->satellite, "LANDSAT_4") == 0)
+    {
+        if (strcmp (gmeta->instrument, "TM") != 0)
+        {
+            sprintf (errmsg, "Unsupported sensor type: %s",
+                gmeta->instrument);
+            error_handler (true, FUNC_NAME, errmsg);
+            return (ERROR);
+        }
+    }
+    /* SPACECRAFT_ID not populated */
+    else
+    {
+        sprintf (errmsg,
+            "SPACECRAFT_ID is required to validate SENSOR_ID");
+        error_handler (true, FUNC_NAME, errmsg);
+        return (ERROR);
+    }
+
     /* Check the band count to make sure we didn't go over the maximum
        expected */
     if (band_count > MAX_LPGS_BANDS)
@@ -1271,23 +1318,16 @@ int read_lpgs_mtl
             bmeta[i].fill_value = 0;
             strcpy (bmeta[i].short_name, "LE07");
         }
-        else if (!strcmp (gmeta->instrument, "OLI_TIRS"))
+        else if (!strcmp (gmeta->instrument, "OLI_TIRS")
+             ||  !strcmp (gmeta->instrument, "OLI")
+             ||  !strcmp (gmeta->instrument, "TIRS"))
         {
             bmeta[i].data_type = ESPA_UINT16;
             bmeta[i].fill_value = 0;
-            strcpy (bmeta[i].short_name, "LC08");
-        }
-        else if (!strcmp (gmeta->instrument, "OLI"))
-        {
-            bmeta[i].data_type = ESPA_UINT16;
-            bmeta[i].fill_value = 0;
-            strcpy (bmeta[i].short_name, "LO08");
-        }
-        else if (!strcmp (gmeta->instrument, "TIRS"))
-        {
-            bmeta[i].data_type = ESPA_UINT16;
-            bmeta[i].fill_value = 0;
-            strcpy (bmeta[i].short_name, "LT08");
+            if (!strcmp (gmeta->satellite, "LANDSAT_8"))
+                strcpy (bmeta[i].short_name, "LC08");
+            else if (!strcmp (gmeta->satellite, "LANDSAT_9"))
+                strcpy (bmeta[i].short_name, "LC09");
         }
 
         /* Set up the band names - use lower case 'b' versus upper case 'B'

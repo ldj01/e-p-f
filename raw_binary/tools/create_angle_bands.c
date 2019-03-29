@@ -416,6 +416,7 @@ int main (int argc, char** argv)
                         "%s_b%d_solar_zenith.img", outfile, curr_band);
                     sprintf (out_bmeta->name, "solar_zenith_band%d", curr_band);
                     strncpy (tmpstr, bmeta->short_name, 4);
+                    tmpstr[4] = '\0';
                     sprintf (out_bmeta->short_name, "%sSOLZEN", tmpstr);
                     sprintf (out_bmeta->long_name,
                         "band %d solar zenith angles", curr_band);
@@ -428,6 +429,7 @@ int main (int argc, char** argv)
                     sprintf (out_bmeta->name, "solar_azimuth_band%d",
                         curr_band);
                     strncpy (tmpstr, bmeta->short_name, 4);
+                    tmpstr[4] = '\0';
                     sprintf (out_bmeta->short_name, "%sSOLAZ", tmpstr);
                     sprintf (out_bmeta->long_name,
                         "band %d solar azimuth angles", curr_band);
@@ -440,6 +442,7 @@ int main (int argc, char** argv)
                     sprintf (out_bmeta->name, "sensor_zenith_band%d",
                         curr_band);
                     strncpy (tmpstr, bmeta->short_name, 4);
+                    tmpstr[4] = '\0';
                     sprintf (out_bmeta->short_name, "%sSENZEN", tmpstr);
                     sprintf (out_bmeta->long_name,
                         "band %d sensor zenith angles", curr_band);
@@ -452,6 +455,7 @@ int main (int argc, char** argv)
                     sprintf (out_bmeta->name, "sensor_azimuth_band%d",
                         curr_band);
                     strncpy (tmpstr, bmeta->short_name, 4);
+                    tmpstr[4] = '\0';
                     sprintf (out_bmeta->short_name, "%sSENAZ", tmpstr);
                     sprintf (out_bmeta->long_name,
                         "band %d sensor azimuth angles", curr_band);
@@ -602,6 +606,7 @@ int main (int argc, char** argv)
                         "%s_avg_solar_zenith.img", outfile);
                     sprintf (out_bmeta->name, "avg_solar_zenith_band");
                     strncpy (tmpstr, bmeta->short_name, 4);
+                    tmpstr[4] = '\0';
                     sprintf (out_bmeta->short_name, "%sSOLZEN", tmpstr);
                     sprintf (out_bmeta->long_name,
                         "average solar zenith angles");
@@ -613,6 +618,7 @@ int main (int argc, char** argv)
                         "%s_avg_solar_azimuth.img", outfile);
                     sprintf (out_bmeta->name, "avg_solar_azimuth_band");
                     strncpy (tmpstr, bmeta->short_name, 4);
+                    tmpstr[4] = '\0';
                     sprintf (out_bmeta->short_name, "%sSOLAZ", tmpstr);
                     sprintf (out_bmeta->long_name,
                         "average solar azimuth angles");
@@ -624,6 +630,7 @@ int main (int argc, char** argv)
                         "%s_avg_sensor_zenith.img", outfile);
                     sprintf (out_bmeta->name, "avg_sensor_zenith_band");
                     strncpy (tmpstr, bmeta->short_name, 4);
+                    tmpstr[4] = '\0';
                     sprintf (out_bmeta->short_name, "%sSENZEN", tmpstr);
                     sprintf (out_bmeta->long_name,
                         "average sensor zenith angles");
@@ -635,6 +642,7 @@ int main (int argc, char** argv)
                         "%s_avg_sensor_azimuth.img", outfile);
                     sprintf (out_bmeta->name, "avg_sensor_azimuth_band");
                     strncpy (tmpstr, bmeta->short_name, 4);
+                    tmpstr[4] = '\0';
                     sprintf (out_bmeta->short_name, "%sSENAZ", tmpstr);
                     sprintf (out_bmeta->long_name,
                         "average sensor azimuth angles");

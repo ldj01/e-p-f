@@ -136,7 +136,7 @@ def log(message, file=None, line=None):
 
     # Determine where to output the message
     if __LOG_HANDLER__ is None:
-        print (message_string)
+        print(message_string)
     else:
         __LOG_HANDLER__.write(message_string + '\n')
 # END log
