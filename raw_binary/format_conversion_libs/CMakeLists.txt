@@ -7,6 +7,7 @@ else ()
 endif ()
 include_directories(${HDF4_INCLUDES})
 include_directories(${TIFF_INCLUDES})
+include_directories(${GEOTIFF_INCLUDES})
 include_directories(${IAS_INCLUDES})
 include_directories(${GCTP3_INCLUDES})
 
