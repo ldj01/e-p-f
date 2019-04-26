@@ -110,6 +110,7 @@ int read_lpgs_mtl
     char source_dir[STR_SIZE] = ""; /* directory location of source bands */
     int i;                    /* looping variable */
     int count;                /* number of chars copied in snprintf */
+    int scan_count;           /* number of arguments read in *scanf() call */
     int band_count = 0;       /* count of the bands processed so we don't have
                                  to specify each band number directly, which
                                  get complicated as we are supporting TM, ETM+,
@@ -234,6 +235,8 @@ int read_lpgs_mtl
         /* Read image information. */
         else if (!strcmp(group, "IMAGE_ATTRIBUTES"))
         {
+            scan_count = 1;  /* initialize for passes where not set below */
+
             if (!strcmp (label, "SPACECRAFT_ID"))
             {
                 if (strcmp (tokenptr, "LANDSAT_9") == 0 ||
@@ -296,22 +299,31 @@ int read_lpgs_mtl
             }
             else if (!strcmp (label, "SUN_ELEVATION"))
             {
-                sscanf (tokenptr, "%f", &fnum);
+                scan_count = sscanf(tokenptr, "%f", &fnum);
                 gmeta->solar_zenith = 90.0 - fnum;
             }
             else if (!strcmp (label, "SUN_AZIMUTH"))
-                sscanf (tokenptr, "%f", &gmeta->solar_azimuth);
+                scan_count = sscanf(tokenptr, "%f", &gmeta->solar_azimuth);
             else if (!strcmp (label, "EARTH_SUN_DISTANCE"))
-                sscanf (tokenptr, "%f", &gmeta->earth_sun_dist);
+                scan_count = sscanf(tokenptr, "%f", &gmeta->earth_sun_dist);
             else if (!strcmp (label, "WRS_PATH"))
-                sscanf (tokenptr, "%d", &gmeta->wrs_path);
+                scan_count = sscanf(tokenptr, "%d", &gmeta->wrs_path);
             else if (!strcmp (label, "WRS_ROW"))
-                sscanf (tokenptr, "%d", &gmeta->wrs_row);
+                scan_count = sscanf(tokenptr, "%d", &gmeta->wrs_row);
+
+            if (scan_count != 1)
+            {
+                error_handler(true, FUNC_NAME,
+                              "Failure reading parameter value.");
+                return ERROR;
+            }
         } /* IMAGE_ATTRIBUTES group */
 
         /* Read projection information. */
         else if (!strcmp(group, "PROJECTION_ATTRIBUTES"))
         {
+            scan_count = 1;  /* initialize for passes where not set below */
+
             if (!strcmp (label, "MAP_PROJECTION"))
             {
                 if (!strcmp (tokenptr, "UTM"))
@@ -342,82 +354,103 @@ int read_lpgs_mtl
             }
             else if (!strcmp (label, "UTM_ZONE"))
             {
-                sscanf (tokenptr, "%d", &gmeta->proj_info.utm_zone);
+                scan_count = sscanf(tokenptr, "%d", &gmeta->proj_info.utm_zone);
             }
             else if (!strcmp (label, "GRID_CELL_SIZE_REFLECTIVE"))
             {
-                sscanf (tokenptr, "%lf", &tmp_bmeta.pixel_size[0]);
+                scan_count = sscanf(tokenptr, "%lf", &tmp_bmeta.pixel_size[0]);
                 tmp_bmeta.pixel_size[1] = tmp_bmeta.pixel_size[0];
             }
             else if (!strcmp (label, "GRID_CELL_SIZE_THERMAL"))
             {
-                sscanf (tokenptr, "%lf", &tmp_bmeta_th.pixel_size[0]);
+                scan_count = sscanf(tokenptr, "%lf",
+                                    &tmp_bmeta_th.pixel_size[0]);
                 tmp_bmeta_th.pixel_size[1] = tmp_bmeta_th.pixel_size[0];
             }
             else if (!strcmp (label, "GRID_CELL_SIZE_PANCHROMATIC"))
             {
-                sscanf (tokenptr, "%lf", &tmp_bmeta_pan.pixel_size[0]);
+                scan_count = sscanf(tokenptr, "%lf",
+                                    &tmp_bmeta_pan.pixel_size[0]);
                 tmp_bmeta_pan.pixel_size[1] = tmp_bmeta_pan.pixel_size[0];
             }
             else if (!strcmp (label, "REFLECTIVE_SAMPLES"))
-                sscanf (tokenptr, "%d", &tmp_bmeta.nsamps);
+                scan_count = sscanf(tokenptr, "%d", &tmp_bmeta.nsamps);
             else if (!strcmp (label, "REFLECTIVE_LINES"))
-                sscanf (tokenptr, "%d", &tmp_bmeta.nlines);
+                scan_count = sscanf(tokenptr, "%d", &tmp_bmeta.nlines);
             else if (!strcmp (label, "THERMAL_SAMPLES"))
-                sscanf (tokenptr, "%d", &tmp_bmeta_th.nsamps);
+                scan_count = sscanf(tokenptr, "%d", &tmp_bmeta_th.nsamps);
             else if (!strcmp (label, "THERMAL_LINES"))
-                sscanf (tokenptr, "%d", &tmp_bmeta_th.nlines);
+                scan_count = sscanf(tokenptr, "%d", &tmp_bmeta_th.nlines);
             else if (!strcmp (label, "PANCHROMATIC_SAMPLES"))
-                sscanf (tokenptr, "%d", &tmp_bmeta_pan.nsamps);
+                scan_count = sscanf(tokenptr, "%d", &tmp_bmeta_pan.nsamps);
             else if (!strcmp (label, "PANCHROMATIC_LINES"))
-                sscanf (tokenptr, "%d", &tmp_bmeta_pan.nlines);
+                scan_count = sscanf(tokenptr, "%d", &tmp_bmeta_pan.nlines);
 
             /* PS projection parameters */
             else if (!strcmp (label, "VERTICAL_LON_FROM_POLE"))
-                sscanf (tokenptr, "%lf", &gmeta->proj_info.longitude_pole);
+                scan_count = sscanf(tokenptr, "%lf",
+                                    &gmeta->proj_info.longitude_pole);
             else if (!strcmp (label, "TRUE_SCALE_LAT"))
-                sscanf (tokenptr, "%lf", &gmeta->proj_info.latitude_true_scale);
+                scan_count = sscanf(tokenptr, "%lf",
+                                    &gmeta->proj_info.latitude_true_scale);
             else if (!strcmp (label, "FALSE_EASTING"))
-                sscanf (tokenptr, "%lf", &gmeta->proj_info.false_easting);
+                scan_count = sscanf(tokenptr, "%lf",
+                                    &gmeta->proj_info.false_easting);
             else if (!strcmp (label, "FALSE_NORTHING"))
-                sscanf (tokenptr, "%lf", &gmeta->proj_info.false_northing);
+                scan_count = sscanf(tokenptr, "%lf",
+                                    &gmeta->proj_info.false_northing);
 
             /* ALBERS projection parameters (in addition to false easting and
                northing under PS proj params) */
             else if (!strcmp (label, "STANDARD_PARALLEL_1_LAT"))
-                sscanf (tokenptr, "%lf", &gmeta->proj_info.standard_parallel1);
+                scan_count = sscanf(tokenptr, "%lf",
+                                    &gmeta->proj_info.standard_parallel1);
             else if (!strcmp (label, "STANDARD_PARALLEL_2_LAT"))
-                sscanf (tokenptr, "%lf", &gmeta->proj_info.standard_parallel2);
+                scan_count = sscanf(tokenptr, "%lf",
+                                    &gmeta->proj_info.standard_parallel2);
             else if (!strcmp (label, "CENTRAL_MERIDIAN_LON"))
-                sscanf (tokenptr, "%lf", &gmeta->proj_info.central_meridian);
+                scan_count = sscanf(tokenptr, "%lf",
+                                    &gmeta->proj_info.central_meridian);
             else if (!strcmp (label, "ORIGIN_LAT"))
-                sscanf (tokenptr, "%lf", &gmeta->proj_info.origin_latitude);
+                scan_count = sscanf(tokenptr, "%lf",
+                                    &gmeta->proj_info.origin_latitude);
 
             else if (!strcmp (label, "CORNER_UL_LAT_PRODUCT"))
-                sscanf (tokenptr, "%lf", &gmeta->ul_corner[0]);
+                scan_count = sscanf(tokenptr, "%lf", &gmeta->ul_corner[0]);
             else if (!strcmp (label, "CORNER_UL_LON_PRODUCT"))
-                sscanf (tokenptr, "%lf", &gmeta->ul_corner[1]);
+                scan_count = sscanf(tokenptr, "%lf", &gmeta->ul_corner[1]);
             else if (!strcmp (label, "CORNER_LR_LAT_PRODUCT"))
-                sscanf (tokenptr, "%lf", &gmeta->lr_corner[0]);
+                scan_count = sscanf(tokenptr, "%lf", &gmeta->lr_corner[0]);
             else if (!strcmp (label, "CORNER_LR_LON_PRODUCT"))
-                sscanf (tokenptr, "%lf", &gmeta->lr_corner[1]);
+                scan_count = sscanf(tokenptr, "%lf", &gmeta->lr_corner[1]);
             else if (!strcmp (label, "CORNER_UR_LAT_PRODUCT"))
-                sscanf (tokenptr, "%lf", &ur_corner[0]);
+                scan_count = sscanf(tokenptr, "%lf", &ur_corner[0]);
             else if (!strcmp (label, "CORNER_UR_LON_PRODUCT"))
-                sscanf (tokenptr, "%lf", &ur_corner[1]);
+                scan_count = sscanf(tokenptr, "%lf", &ur_corner[1]);
             else if (!strcmp (label, "CORNER_LL_LAT_PRODUCT"))
-                sscanf (tokenptr, "%lf", &ll_corner[0]);
+                scan_count = sscanf(tokenptr, "%lf", &ll_corner[0]);
             else if (!strcmp (label, "CORNER_LL_LON_PRODUCT"))
-                sscanf (tokenptr, "%lf", &ll_corner[1]);
+                scan_count = sscanf(tokenptr, "%lf", &ll_corner[1]);
 
             else if (!strcmp (label, "CORNER_UL_PROJECTION_X_PRODUCT"))
-                sscanf (tokenptr, "%lf", &gmeta->proj_info.ul_corner[0]);
+                scan_count = sscanf(tokenptr, "%lf",
+                                    &gmeta->proj_info.ul_corner[0]);
             else if (!strcmp (label, "CORNER_UL_PROJECTION_Y_PRODUCT"))
-                sscanf (tokenptr, "%lf", &gmeta->proj_info.ul_corner[1]);
+                scan_count = sscanf(tokenptr, "%lf",
+                                    &gmeta->proj_info.ul_corner[1]);
             else if (!strcmp (label, "CORNER_LR_PROJECTION_X_PRODUCT"))
-                sscanf (tokenptr, "%lf", &gmeta->proj_info.lr_corner[0]);
+                scan_count = sscanf(tokenptr, "%lf",
+                                    &gmeta->proj_info.lr_corner[0]);
             else if (!strcmp (label, "CORNER_LR_PROJECTION_Y_PRODUCT"))
-                sscanf (tokenptr, "%lf", &gmeta->proj_info.lr_corner[1]);
+                scan_count = sscanf(tokenptr, "%lf",
+                                    &gmeta->proj_info.lr_corner[1]);
+
+            if (scan_count != 1)
+            {
+                error_handler(true, FUNC_NAME,
+                              "Failure reading parameter value.");
+                return ERROR;
+            }
         } /* PROJECTION_ATTRIBUTES group */
 
         /* Read information from the LEVEL1_PROJECTION_PARAMETERS group. */
