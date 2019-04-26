@@ -462,6 +462,12 @@ int read_lpgs_mtl
                     return ERROR;
                 }
 
+                /* The band ID takes different forms based on the sensor.
+                   Most are simply "BAND_n".  But ETM+ appends the VCID
+                   for the two thermal bands.  The sscanf() function can
+                   match as much of the format string as possible, so both
+                   syntax can be read.   The function will return values of
+                   1 or 2, depending on the format. */
                 if (sscanf(binfo->id, "BAND_%d_VCID_%d", &bnum, &vcid) > 0)
                 {
                     count = snprintf(binfo->fname, sizeof(binfo->fname), "%s",
