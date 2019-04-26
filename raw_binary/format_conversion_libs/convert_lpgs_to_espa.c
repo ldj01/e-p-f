@@ -586,6 +586,17 @@ int read_lpgs_mtl
                     continue;
 
                 band_count++;  /* increment the band count */
+
+                /* Check the band count to make sure we didn't go over the
+                   maximum expected. */
+                if (band_count > MAX_LPGS_BANDS)
+                {
+                    sprintf(errmsg, "The total number of LPGS bands "
+                            "converted for this product exceeds the "
+                            "maximum expected (%d).", MAX_LPGS_BANDS);
+                    error_handler(true, FUNC_NAME, errmsg);
+                    return ERROR;
+                }
             } /* FILE_NAME block */
 
             /* Read the data types for each band. */
@@ -828,17 +839,6 @@ int read_lpgs_mtl
     {
         sprintf (errmsg,
             "SPACECRAFT_ID is required to validate SENSOR_ID");
-        error_handler (true, FUNC_NAME, errmsg);
-        return (ERROR);
-    }
-
-    /* Check the band count to make sure we didn't go over the maximum
-       expected */
-    if (band_count > MAX_LPGS_BANDS)
-    {
-        sprintf (errmsg, "The total band count of LPGS bands converted for "
-            "this product (%d) exceeds the maximum expected (%d).", band_count,
-            MAX_LPGS_BANDS);
         error_handler (true, FUNC_NAME, errmsg);
         return (ERROR);
     }
