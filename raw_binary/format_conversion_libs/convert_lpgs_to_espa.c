@@ -761,8 +761,7 @@ int read_lpgs_mtl
         } /* LEVEL1_RADIOMETRIC_RESCALING group */
 
         /* Read the K1, K2 constants */
-        else if (!strcmp(group, "LEVEL1_TIRS_THERMAL_CONSTANTS") ||
-                 !strcmp(group, "LEVEL1_THERMAL_CONSTANTS"))
+        else if (!strcmp(group, "LEVEL1_THERMAL_CONSTANTS"))
         {
             if (!strncmp(label, "K1_CONSTANT", 11) ||
                 !strncmp(label, "K2_CONSTANT", 11))
