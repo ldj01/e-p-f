@@ -1126,45 +1126,7 @@ int read_lpgs_mtl
             }
 
             /* Set band-specific information. */
-            if (!strcmp(binfo->band_num, "bqa"))
-            {
-                strcpy(bmeta->bitmap_description[0],
-                       "Data Fill Flag (0 = valid data, 1 = invalid data)");
-                if (!strncmp(gmeta->instrument, "OLI", 3))
-                {  /* OLI */
-                    strcpy(bmeta->bitmap_description[1],
-                           "Terrain Occlusion (0 = not terrain occluded, "
-                           "1 = terrain occluded)");
-                }
-                else
-                {  /* TM/ETM+ */
-                    strcpy(bmeta->bitmap_description[1], "Dropped Pixel "
-                           "(0 = not a dropped pixel , 1 = dropped pixel)");
-                }
-                strcpy(bmeta->bitmap_description[2], "Radiometric Saturation");
-                strcpy(bmeta->bitmap_description[3], "Radiometric Saturation");
-                strcpy(bmeta->bitmap_description[4], "Cloud");
-                strcpy(bmeta->bitmap_description[5], "Cloud Confidence");
-                strcpy(bmeta->bitmap_description[6], "Cloud Confidence");
-                strcpy(bmeta->bitmap_description[7], "Cloud Shadow Confidence");
-                strcpy(bmeta->bitmap_description[8], "Cloud Shadow Confidence");
-                strcpy(bmeta->bitmap_description[9], "Snow/Ice Confidence");
-                strcpy(bmeta->bitmap_description[10], "Snow/Ice Confidence");
-                if (!strncmp(gmeta->instrument, "OLI", 3))
-                {  /* OLI */
-                    strcpy(bmeta->bitmap_description[11], "Cirrus Confidence");
-                    strcpy(bmeta->bitmap_description[12], "Cirrus Confidence");
-                }
-                else
-                {  /* TM/ETM+ */
-                    strcpy(bmeta->bitmap_description[11], "Not used");
-                    strcpy(bmeta->bitmap_description[12], "Not used");
-                }
-                strcpy(bmeta->bitmap_description[13], "Not used");
-                strcpy(bmeta->bitmap_description[14], "Not used");
-                strcpy(bmeta->bitmap_description[15], "Not used");
-            } /* bqa band */
-            else if (!strcmp(binfo->band_num, "bqa_pixel"))
+            if (!strcmp(binfo->band_num, "bqa_pixel"))
             {
                 strcpy(bmeta->bitmap_description[0],
                        "Data Fill Flag (0 = valid data, 1 = invalid data)");
